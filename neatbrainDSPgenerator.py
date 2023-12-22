@@ -112,7 +112,26 @@ def connect_AHDSR(ahdsr, connection_id, node_id, parameter_id):
 			ahdsr.insert(idx+1, f'<Connection NodeId="{node_id}" ParameterId="{parameter_id}"/>')
 
 def add_filter(name, frequency):
-	return None
+	lowpassFilter = []
+	lowpassFilter.append(f'<Node ID="{name}" FactoryPath="filters.one_pole" Bypassed="0">')
+	lowpassFilter.append(f'<ComplexData>')
+	lowpassFilter.append(f'<Filters>')
+	lowpassFilter.append(f'<Filter Index="-1" EmbeddedData=""/>')
+	lowpassFilter.append(f'</Filters>')
+	lowpassFilter.append(f'</ComplexData>')
+	lowpassFilter.append(f'<Parameters>')
+	lowpassFilter.append(f'<Parameter MinValue="20.0" MaxValue="20000.0" SkewFactor="0.2299045622348785"')
+	lowpassFilter.append(f'ID="Frequency" Value="{frequency}"/>')
+	lowpassFilter.append(f'<Parameter MinValue="0.300000011920929" MaxValue="9.899999618530273" SkewFactor="0.2647178173065186"')
+	lowpassFilter.append(f'ID="Q" Value="1.0"/>')
+	lowpassFilter.append(f'<Parameter MinValue="-18.0" MaxValue="18.0" ID="Gain" Value="0.0"/>')
+	lowpassFilter.append(f'<Parameter MinValue="0.0" MaxValue="1.0" SkewFactor="0.3010300099849701"')
+	lowpassFilter.append(f'ID="Smoothing" Value="0.009999999776482582"/>')
+	lowpassFilter.append(f'<Parameter MinValue="0.0" MaxValue="1.0" StepSize="1.0" ID="Mode" Value="0.0"/>')
+	lowpassFilter.append(f'<Parameter MinValue="0.0" MaxValue="1.0" StepSize="1.0" ID="Enabled" Value="1.0"/>')
+	lowpassFilter.append(f'</Parameters>')
+	lowpassFilter.append(f'</Node>')
+	return lowpassFilter
 
 def add_voice_manager(name):
 	voice_manager = []
@@ -122,49 +141,45 @@ def add_voice_manager(name):
 	voice_manager.append(f'</Parameters>')
 	voice_manager.append(f'</Node>')
 	return voice_manager
-	
-
-def connect_cable(name1, name2):
-	return None
-
-
 
 
 # Connections
 
 
 if __name__=="__main__":
-	# use Scriptnode Voice Killer on ScriptFX Module
-	# be careful when using SVK & restoreState on the scriptnode synth
-	# add a voice_manager node 
-	# connect AHDSR Gate Output to the VoiceKill socket of voice manager node
-	ahdsr_gain = add_AHDSR("ahdsrGain", 5.0, 1.0, 18000, 0.0, 50)
-	ahdsr_pitch = add_AHDSR("ahdsrPitch", 5.0, 1.0, 18000, 0.0, 50)
+	# be careful using restoreState() on the scriptnode synth
+
+	# Instantiate Nodes
+
+	ahdsr_gain = add_AHDSR("ahdsrGain", 5.0, 1.0, 18000, 0.0, 50) # A AL D S R 
+	ahdsr_pitch = add_AHDSR("ahdsrPitch", 5.0, 1.0, 18000, 0.0, 50) # A AL D S R 
+	ahdsr_filter = add_AHDSR("ahdsrFilter", 5.0, 1.0, 4000, 0.0, 50) # A AL D S R 
 	split = open_chain("sines_splitter", "container.split")
 	split_close = close_chain("sines_splitter")
 	voice_manager = add_voice_manager('voiceManager')
+	lowpassFilter = add_filter('lowPass', 2000)
 
 	nodes = []
 
 	nodes.append(ahdsr_gain)
-
+	nodes.append(ahdsr_filter)
 	nodes.append(ahdsr_pitch)
 	nodes.append(split)
+
+	# Build Sine Wave Chains
+
 	for i in range(NUM_MODES):
 		nodes.append(open_chain(f'sine_{i}_chain', 'container.chain'))
 		nodes.append(add_sine(f'sine_{i}', 1.0 + (1.0*i))) # ratios[i]
 		nodes.append(close_chain(f'sine_{i}_chain'))
 		connect_AHDSR(ahdsr_gain, '<!-- CV -->', f'sine_{i}', 'Gain')
-		#chain = open_chain(f'sine_{i}_chain', 'container.chain')
-		#sine = add_sine(f'sine_{i}', 1.0 + (1.0*i)) # ratios[i]
-		# add other modules here
-		#chain_end = close_chain(f'sine_{i}_chain')
-		#nodes.append(chain)
-		#nodes.append(sine)
-		#nodes.append(chain_end)
 	nodes.append(split_close)
+	nodes.append(lowpassFilter)
 	nodes.append(voice_manager)
 	connect_AHDSR(ahdsr_gain, '<!-- GT -->', 'voiceManager', 'Kill Voice')
+	connect_AHDSR(ahdsr_gain, '<!-- CV -->', 'lowPass', 'Frequency')
+
+	# Start Writers
 
 	for text in NETWORK_START:
 		file.write(f'{text}\n')

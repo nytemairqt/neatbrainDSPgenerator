@@ -26,7 +26,8 @@ NETWORK_START.append('<!-- Begin Node Tree -->')
 
 NETWORK_PARAMS.append('</Nodes> <!--End Master Nodes -->')
 NETWORK_PARAMS.append('<!-- Master Params go Here -->')
-NETWORK_PARAMS.append('<Parameters/>') # no params to start...
+NETWORK_PARAMS.append('<Parameters>')
+NETWORK_PARAMS.append('</Parameters>')
 
 NETWORK_END.append('<!-- End Node Tree & Close Network-->')
 NETWORK_END.append('</Node>')
@@ -50,6 +51,8 @@ def close_chain(name):
 	return chain
 
 def add_sine(name, freq_ratio):
+	# maybe test adjusting the min/max limits for inter-modal randomness?
+	# alternatively just use noteOn and set the ratios as parameters...
 	sine = []
 	sine.append(f'<!-- Oscillator {name} -->')
 	sine.append(f'<Node ID="{name}" FactoryPath="core.oscillator" Bypassed="0">')
@@ -61,7 +64,7 @@ def add_sine(name, freq_ratio):
 	sine.append(f'<Parameters>')
 	sine.append(f'<Parameter MinValue="0.0" MaxValue="4.0" StepSize="1.0" ID="Mode" Automated="1"/>')
 	sine.append(f'<Parameter MinValue="20.0" MaxValue="20000.0" StepSize="0.1000000014901161" SkewFactor="0.2299045622348785" ID="Frequency" Value="220.0"/>')
-	sine.append(f'<Parameter MinValue="1.0" MaxValue="16.0" StepSize="1.0" ID="Freq Ratio" Value="{freq_ratio}"/>')
+	sine.append(f'<Parameter MinValue="1.0" MaxValue="30.0" StepSize="1.0" ID="Freq Ratio" Value="{freq_ratio}"/>')
 	sine.append(f'<Parameter MinValue="0.0" MaxValue="1.0" StepSize="1.0" ID="Gate" Value="1.0"/>')
 	sine.append(f'<Parameter MinValue="0.0" MaxValue="1.0" ID="Phase" Value="0.0"/>')
 	sine.append(f'<Parameter MinValue="0.0" MaxValue="1.0" ID="Gain" Value="1.0"/>')
@@ -111,6 +114,15 @@ def connect_AHDSR(ahdsr, connection_id, node_id, parameter_id):
 		if connection_id in line:
 			ahdsr.insert(idx+1, f'<Connection NodeId="{node_id}" ParameterId="{parameter_id}"/>')
 
+def create_parameter(name, min_value, max_value, step_size, value, node_id, parameter_id):
+	for idx, line in enumerate(NETWORK_PARAMS):
+		if '<Parameters>' in line:
+			NETWORK_PARAMS.insert(idx+1, f'<Parameter ID="{name}" MinValue="{min_value}" MaxValue="{max_value}" StepSize="{step_size}" Value="{value}">')
+			NETWORK_PARAMS.insert(idx+2, f'<Connections>')
+			NETWORK_PARAMS.insert(idx+3, f'<Connection NodeId="{node_id}" ParameterId="{parameter_id}"/>')
+			NETWORK_PARAMS.insert(idx+4, f'</Connections>')			
+			NETWORK_PARAMS.insert(idx+5, f'</Parameter>')
+
 def add_filter(name, frequency):
 	lowpassFilter = []
 	lowpassFilter.append(f'<Node ID="{name}" FactoryPath="filters.one_pole" Bypassed="0">')
@@ -154,8 +166,12 @@ if __name__=="__main__":
 	ahdsr_gain = add_AHDSR("ahdsrGain", 5.0, 1.0, 18000, 0.0, 50) # A AL D S R 
 	ahdsr_pitch = add_AHDSR("ahdsrPitch", 5.0, 1.0, 18000, 0.0, 50) # A AL D S R 
 	ahdsr_filter = add_AHDSR("ahdsrFilter", 5.0, 1.0, 4000, 0.0, 50) # A AL D S R 
-	split = open_chain("sines_splitter", "container.split")
-	split_close = close_chain("sines_splitter")
+	multi = open_chain("multiChannel", "container.multi")
+	multi_close = close_chain("multiChannel")
+	split_L = open_chain("sines_splitterL", "container.split")
+	split_R = open_chain("sines_splitterR", "container.split")
+	split_close_L = close_chain("sines_splitterL")
+	split_close_R = close_chain("sines_splitterR")
 	voice_manager = add_voice_manager('voiceManager')
 	lowpassFilter = add_filter('lowPass', 2000)
 
@@ -164,20 +180,39 @@ if __name__=="__main__":
 	nodes.append(ahdsr_gain)
 	nodes.append(ahdsr_filter)
 	nodes.append(ahdsr_pitch)
-	nodes.append(split)
+	nodes.append(multi)
+
+	# Left Channel
+	nodes.append(split_L)
 
 	# Build Sine Wave Chains
-
 	for i in range(NUM_MODES):
-		nodes.append(open_chain(f'sine_{i}_chain', 'container.chain'))
-		nodes.append(add_sine(f'sine_{i}', 1.0 + (1.0*i))) # ratios[i]
-		nodes.append(close_chain(f'sine_{i}_chain'))
-		connect_AHDSR(ahdsr_gain, '<!-- CV -->', f'sine_{i}', 'Gain')
-	nodes.append(split_close)
+		#nodes.append(open_chain(f'sineL_{i}_chain', 'container.chain'))
+		nodes.append(add_sine(f'sineL_{i}', 1.0 + (1.0*i))) # ratios[i]
+		#nodes.append(close_chain(f'sineL_{i}_chain'))
+		connect_AHDSR(ahdsr_gain, '<!-- CV -->', f'sineL_{i}', 'Gain')
+	nodes.append(split_close_L)
+
+	# Right Channel
+	nodes.append(split_R)
+
+	# Build Sine Wave Chains
+	for i in range(NUM_MODES):
+		#nodes.append(open_chain(f'sineR_{i}_chain', 'container.chain'))
+		nodes.append(add_sine(f'sineR_{i}', 1.0 + (1.0*i))) # ratios[i]
+		#nodes.append(close_chain(f'sineR_{i}_chain'))
+		connect_AHDSR(ahdsr_gain, '<!-- CV -->', f'sineR_{i}', 'Gain')
+	nodes.append(split_close_R)
+
+	nodes.append(multi_close)
 	nodes.append(lowpassFilter)
 	nodes.append(voice_manager)
 	connect_AHDSR(ahdsr_gain, '<!-- GT -->', 'voiceManager', 'Kill Voice')
 	connect_AHDSR(ahdsr_gain, '<!-- CV -->', 'lowPass', 'Frequency')
+
+	# Create & Connect Parameters
+
+	create_parameter('derek', 0.0, 1.0, 0.1, 0.66, 'lowPass', 'Smoothing')
 
 	# Start Writers
 

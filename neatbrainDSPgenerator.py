@@ -79,10 +79,12 @@ def add_AHDSR(name, attack, attack_level, decay, sustain, release):
 	ahdsr.append(f'</Properties>')
 	ahdsr.append(f'<SwitchTargets>')
 	ahdsr.append(f'<SwitchTarget>')
-	ahdsr.append(f'<Connections/>')
+	ahdsr.append(f'<Connections> <!-- CV -->')
+	ahdsr.append(f'</Connections>')
 	ahdsr.append(f'</SwitchTarget>')
 	ahdsr.append(f'<SwitchTarget>')
-	ahdsr.append(f'<Connections/>')
+	ahdsr.append(f'<Connections> <!-- GT -->')
+	ahdsr.append(f'</Connections>')
 	ahdsr.append(f'</SwitchTarget>')
 	ahdsr.append(f'</SwitchTargets>')
 	ahdsr.append(f'<ComplexData>')
@@ -104,32 +106,55 @@ def add_AHDSR(name, attack, attack_level, decay, sustain, release):
 	ahdsr.append(f'</Node> <!-- End AHDSR -->')
 	return ahdsr 
 
+def connect_AHDSR(ahdsr, connection_id, node_id, parameter_id):
+	for idx, line in enumerate(ahdsr):
+		if connection_id in line:
+			ahdsr.insert(idx+1, f'<Connection NodeId="{node_id}" ParameterId="{parameter_id}"/>')
+
 def add_filter(name, frequency):
 	return None
 
+def add_voice_manager(name):
+	voice_manager = []
+	voice_manager.append(f'<Node ID="{name}" FactoryPath="envelope.voice_manager" Bypassed="0">')
+	voice_manager.append(f'<Parameters>')
+	voice_manager.append(f'<Parameter MinValue="0.0" MaxValue="1.0" StepSize="1.0" ID="Kill Voice" Automated="1"/>')
+	voice_manager.append(f'</Parameters>')
+	voice_manager.append(f'</Node>')
+	return voice_manager
+	
+
 def connect_cable(name1, name2):
 	return None
+
+
 
 
 # Connections
 
 
 if __name__=="__main__":
-
+	# use Scriptnode Voice Killer on ScriptFX Module
+	# be careful when using SVK & restoreState on the scriptnode synth
+	# add a voice_manager node 
+	# connect AHDSR Gate Output to the VoiceKill socket of voice manager node
 	ahdsr_gain = add_AHDSR("ahdsrGain", 5.0, 1.0, 18000, 0.0, 50)
 	ahdsr_pitch = add_AHDSR("ahdsrPitch", 5.0, 1.0, 18000, 0.0, 50)
 	split = open_chain("sines_splitter", "container.split")
 	split_close = close_chain("sines_splitter")
+	voice_manager = add_voice_manager('voiceManager')
 
 	nodes = []
 
 	nodes.append(ahdsr_gain)
+
 	nodes.append(ahdsr_pitch)
 	nodes.append(split)
 	for i in range(NUM_MODES):
 		nodes.append(open_chain(f'sine_{i}_chain', 'container.chain'))
 		nodes.append(add_sine(f'sine_{i}', 1.0 + (1.0*i))) # ratios[i]
 		nodes.append(close_chain(f'sine_{i}_chain'))
+		connect_AHDSR(ahdsr_gain, '<!-- CV -->', f'sine_{i}', 'Gain')
 		#chain = open_chain(f'sine_{i}_chain', 'container.chain')
 		#sine = add_sine(f'sine_{i}', 1.0 + (1.0*i)) # ratios[i]
 		# add other modules here
@@ -138,6 +163,8 @@ if __name__=="__main__":
 		#nodes.append(sine)
 		#nodes.append(chain_end)
 	nodes.append(split_close)
+	nodes.append(voice_manager)
+	connect_AHDSR(ahdsr_gain, '<!-- GT -->', 'voiceManager', 'Kill Voice')
 
 	for text in NETWORK_START:
 		file.write(f'{text}\n')

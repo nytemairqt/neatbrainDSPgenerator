@@ -3,7 +3,14 @@
 string = '<?xml version="1.0" encoding="UTF-8"?>'
 PATH = 'D:/Documents/HISE/neatbraintestingSCRIPTNODE/DspNetworks/Networks'
 
-file = open(f'{PATH}/demofile.xml', 'w')
+file = open(f'{PATH}/neatbrain.xml', 'w')
+
+# load modes & hyperparams as a JSON object
+# get loris to extract the amplitude envelopes
+
+# Hyperparameters
+
+NUM_MODES = 5
 
 # Instantiate XML Doc
 
@@ -27,10 +34,10 @@ NETWORK_END.append('</Network>')
 
 # Individual Nodes
 
-def open_chain(name):
+def open_chain(name, chain_type):
 	chain = []
 	chain.append(f'<!-- Begin Chain {name} -->')
-	chain.append(f'<Node ID="{name}" FactoryPath="container.split" Bypassed="0">')
+	chain.append(f'<Node ID="{name}" FactoryPath="{chain_type}" Bypassed="0">') # container.chain, container.split
 	chain.append(f'<Nodes>')
 	return chain
 
@@ -43,28 +50,59 @@ def close_chain(name):
 	return chain
 
 def add_sine(name, freq_ratio):
-	mode = []
-	mode.append(f'<!-- Oscillator {name} -->')
-	mode.append(f'<Node ID="{name}" FactoryPath="core.oscillator" Bypassed="0">')
-	mode.append(f'<ComplexData>')
-	mode.append(f'<DisplayBuffers>')
-	mode.append(f'<DisplayBuffer Index="-1"/>')
-	mode.append(f'</DisplayBuffers>')
-	mode.append(f'</ComplexData>')
-	mode.append(f'<Parameters>')
-	mode.append(f'<Parameter MinValue="0.0" MaxValue="4.0" StepSize="1.0" ID="Mode" Automated="1"/>')
-	mode.append(f'<Parameter MinValue="20.0" MaxValue="20000.0" StepSize="0.1000000014901161" SkewFactor="0.2299045622348785" ID="Frequency" Value="220.0"/>')
-	mode.append(f'<Parameter MinValue="1.0" MaxValue="16.0" StepSize="1.0" ID="Freq Ratio" Value="{freq_ratio}"/>')
-	mode.append(f'<Parameter MinValue="0.0" MaxValue="1.0" StepSize="1.0" ID="Gate" Value="1.0"/>')
-	mode.append(f'<Parameter MinValue="0.0" MaxValue="1.0" ID="Phase" Value="0.0"/>')
-	mode.append(f'<Parameter MinValue="0.0" MaxValue="1.0" ID="Gain" Value="1.0"/>')
-	mode.append(f'</Parameters>')
-	mode.append(f'</Node>')
-	mode.append(f'<!-- End Oscillator -->')
-	return mode
+	sine = []
+	sine.append(f'<!-- Oscillator {name} -->')
+	sine.append(f'<Node ID="{name}" FactoryPath="core.oscillator" Bypassed="0">')
+	sine.append(f'<ComplexData>')
+	sine.append(f'<DisplayBuffers>')
+	sine.append(f'<DisplayBuffer Index="-1"/>')
+	sine.append(f'</DisplayBuffers>')
+	sine.append(f'</ComplexData>')
+	sine.append(f'<Parameters>')
+	sine.append(f'<Parameter MinValue="0.0" MaxValue="4.0" StepSize="1.0" ID="Mode" Automated="1"/>')
+	sine.append(f'<Parameter MinValue="20.0" MaxValue="20000.0" StepSize="0.1000000014901161" SkewFactor="0.2299045622348785" ID="Frequency" Value="220.0"/>')
+	sine.append(f'<Parameter MinValue="1.0" MaxValue="16.0" StepSize="1.0" ID="Freq Ratio" Value="{freq_ratio}"/>')
+	sine.append(f'<Parameter MinValue="0.0" MaxValue="1.0" StepSize="1.0" ID="Gate" Value="1.0"/>')
+	sine.append(f'<Parameter MinValue="0.0" MaxValue="1.0" ID="Phase" Value="0.0"/>')
+	sine.append(f'<Parameter MinValue="0.0" MaxValue="1.0" ID="Gain" Value="1.0"/>')
+	sine.append(f'</Parameters>')
+	sine.append(f'</Node>')
+	sine.append(f'<!-- End Oscillator -->')
+	return sine
 
-def add_AHDSR(name, attack, decay, sustain, release):
-	return None 
+def add_AHDSR(name, attack, attack_level, decay, sustain, release):
+	ahdsr = []
+	ahdsr.append(f'<!-- AHDSR {name} -->')
+	ahdsr.append(f'<Node ID="{name}" FactoryPath="envelope.ahdsr" Bypassed="0">')
+	ahdsr.append(f'<Properties>')
+	ahdsr.append(f'<Property ID="NumParameters" Value="2"/>')
+	ahdsr.append(f'</Properties>')
+	ahdsr.append(f'<SwitchTargets>')
+	ahdsr.append(f'<SwitchTarget>')
+	ahdsr.append(f'<Connections/>')
+	ahdsr.append(f'</SwitchTarget>')
+	ahdsr.append(f'<SwitchTarget>')
+	ahdsr.append(f'<Connections/>')
+	ahdsr.append(f'</SwitchTarget>')
+	ahdsr.append(f'</SwitchTargets>')
+	ahdsr.append(f'<ComplexData>')
+	ahdsr.append(f'<DisplayBuffers>')
+	ahdsr.append(f'<DisplayBuffer Index="-1" EmbeddedData=""/>')
+	ahdsr.append(f'</DisplayBuffers>')
+	ahdsr.append(f'</ComplexData>')
+	ahdsr.append(f'<Parameters>')
+	ahdsr.append(f'<Parameter MinValue="0.0" MaxValue="10000.0" StepSize="0.1000000014901161" SkewFactor="0.1976716816425323" ID="Attack" Value="{attack}"/>')
+	ahdsr.append(f'<Parameter MinValue="0.0" MaxValue="1.0" ID="AttackLevel" Value="{attack_level}"/>')
+	ahdsr.append(f'<Parameter MinValue="0.0" MaxValue="10000.0" StepSize="0.1000000014901161" SkewFactor="0.1976716816425323" ID="Hold" Value="20.0"/>')
+	ahdsr.append(f'<Parameter MinValue="0.0" MaxValue="40000.0" StepSize="0.1000000014901161" SkewFactor="0.1976716816425323" ID="Decay" Value="{decay}"/>')
+	ahdsr.append(f'<Parameter MinValue="0.0" MaxValue="1.0" ID="Sustain" Value="{sustain}"/>')
+	ahdsr.append(f'<Parameter MinValue="0.0" MaxValue="30000.0" StepSize="0.1000000014901161" SkewFactor="0.1976716816425323" ID="Release" Value="{release}"/>')
+	ahdsr.append(f'<Parameter MinValue="0.0" MaxValue="1.0" ID="AttackCurve" Value="0.5"/>')
+	ahdsr.append(f'<Parameter MinValue="0.0" MaxValue="1.0" StepSize="1.0" ID="Retrigger" Value="0.0"/>')
+	ahdsr.append(f'<Parameter MinValue="0.0" MaxValue="1.0" StepSize="1.0" ID="Gate" Value="0.0"/>')
+	ahdsr.append(f'</Parameters>')
+	ahdsr.append(f'</Node> <!-- End AHDSR -->')
+	return ahdsr 
 
 def add_filter(name, frequency):
 	return None
@@ -78,15 +116,27 @@ def connect_cable(name1, name2):
 
 if __name__=="__main__":
 
-	split = open_chain("sines_splitter")
+	ahdsr_gain = add_AHDSR("ahdsrGain", 5.0, 1.0, 18000, 0.0, 50)
+	ahdsr_pitch = add_AHDSR("ahdsrPitch", 5.0, 1.0, 18000, 0.0, 50)
+	split = open_chain("sines_splitter", "container.split")
 	split_close = close_chain("sines_splitter")
 
 	nodes = []
 
+	nodes.append(ahdsr_gain)
+	nodes.append(ahdsr_pitch)
 	nodes.append(split)
-	for i in range(5):
-		sine = add_sine(f'sine_{i}', 1.0 + (1.0*i))
-		nodes.append(sine)
+	for i in range(NUM_MODES):
+		nodes.append(open_chain(f'sine_{i}_chain', 'container.chain'))
+		nodes.append(add_sine(f'sine_{i}', 1.0 + (1.0*i))) # ratios[i]
+		nodes.append(close_chain(f'sine_{i}_chain'))
+		#chain = open_chain(f'sine_{i}_chain', 'container.chain')
+		#sine = add_sine(f'sine_{i}', 1.0 + (1.0*i)) # ratios[i]
+		# add other modules here
+		#chain_end = close_chain(f'sine_{i}_chain')
+		#nodes.append(chain)
+		#nodes.append(sine)
+		#nodes.append(chain_end)
 	nodes.append(split_close)
 
 	for text in NETWORK_START:

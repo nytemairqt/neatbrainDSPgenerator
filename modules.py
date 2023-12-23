@@ -1,4 +1,6 @@
-# Individual Nodes
+#------------------------------------------------------------------------------------
+# NODES
+#------------------------------------------------------------------------------------
 
 def open_chain(name, chain_type):
 	chain = []
@@ -74,24 +76,6 @@ def add_AHDSR(name, attack, attack_level, decay, sustain, release):
 	ahdsr.append(f'</Node> <!-- End AHDSR -->')
 	return ahdsr 
 
-def connect_AHDSR(ahdsr, connection_id, node_id, parameter_id):
-	for idx, line in enumerate(ahdsr):
-		if connection_id in line:
-			ahdsr.insert(idx+1, f'<Connection NodeId="{node_id}" ParameterId="{parameter_id}"/>')
-
-def create_parameter(params, name, min_value, max_value, step_size, value):
-	for idx, line in enumerate(params):
-		if '<Parameters>' in line:
-			params.insert(idx+1, f'<Parameter ID="{name}" MinValue="{min_value}" MaxValue="{max_value}" StepSize="{step_size}" Value="{value}">')
-			params.insert(idx+2, f'<Connections>')
-			params.insert(idx+3, f'</Connections>')			
-			params.insert(idx+4, f'</Parameter>')
-
-def connect_parameter(params, name, node_id, parameter_id):
-	for idx, line in enumerate(params):
-		if f'<Parameter ID="{name}"' in line:
-			params.insert(idx+2, f'<Connection NodeId="{node_id}" ParameterId="{parameter_id}"/>')
-
 def add_filter(name, frequency):
 	lowpassFilter = []
 	lowpassFilter.append(f'<Node ID="{name}" FactoryPath="filters.one_pole" Bypassed="0">')
@@ -145,3 +129,62 @@ def add_voice_manager(name):
 	voice_manager.append(f'</Parameters>')
 	voice_manager.append(f'</Node>')
 	return voice_manager
+
+def add_pma(name, value, multiply, add):
+	pma = []
+	pma.append(f'<Node ID="{name}" FactoryPath="control.pma_unscaled" Bypassed="0">')
+	pma.append(f'<ModulationTargets>')
+	pma.append(f'</ModulationTargets>')
+	pma.append(f'<Parameters>')
+	pma.append(f'<Parameter MinValue="0.0" MaxValue="64.0" ID="Value" Value="{value}"/>')
+	pma.append(f'<Parameter MinValue="0.0" MaxValue="1.0" ID="Multiply" Value="{multiply}"/>')
+	pma.append(f'<Parameter MinValue="0.0" MaxValue="1.0" ID="Add" Value="{add}"/>')
+	pma.append(f'</Parameters>')
+	pma.append(f'</Node>')
+	return pma
+
+def add_core_expr(name):
+	# does the expression get saved to the XML?
+	# YEP
+	# <Property ID="Code" Value="Math.random()"/>
+	return
+
+def add_bang(name):
+	return
+
+#------------------------------------------------------------------------------------
+# CONNECTIONS
+#------------------------------------------------------------------------------------
+
+def connect_AHDSR(ahdsr, connection_id, node_id, parameter_id):
+	for idx, line in enumerate(ahdsr):
+		if connection_id in line:
+			ahdsr.insert(idx+1, f'<Connection NodeId="{node_id}" ParameterId="{parameter_id}"/>')
+
+def connect_pma(pma, node_id, parameter_id):
+	for idx, line in enumerate(pma):
+		if '<ModulationTargets>' in line:
+			pma.insert(idx+1, f'<Connection NodeId="{node_id}" ParameterId="{parameter_id}"/>')
+
+def create_parameter(params, name, min_value, max_value, step_size, value):
+	for idx, line in enumerate(params):
+		if '<Parameters>' in line:
+			params.insert(idx+1, f'<Parameter ID="{name}" MinValue="{min_value}" MaxValue="{max_value}" StepSize="{step_size}" Value="{value}">')
+			params.insert(idx+2, f'<Connections>')
+			params.insert(idx+3, f'</Connections>')			
+			params.insert(idx+4, f'</Parameter>')
+
+def connect_parameter(params, name, node_id, parameter_id):
+	for idx, line in enumerate(params):
+		if f'<Parameter ID="{name}"' in line:
+			params.insert(idx+2, f'<Connection NodeId="{node_id}" ParameterId="{parameter_id}"/>')
+
+
+#------------------------------------------------------------------------------------
+# UTILITY
+#------------------------------------------------------------------------------------
+
+def get_node_by_name(data, name):
+	for idx, line in enumerate(data):
+		if name in line:
+			return idx

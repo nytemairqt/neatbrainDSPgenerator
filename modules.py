@@ -159,7 +159,7 @@ def add_pma(name, value, multiply, add):
 	pma.append(f'<ModulationTargets>')
 	pma.append(f'</ModulationTargets>')
 	pma.append(f'<Parameters>')
-	pma.append(f'<Parameter MinValue="0.0" MaxValue="64.0" ID="Value" Value="{value}"/>')
+	pma.append(f'<Parameter MinValue="0.0" MaxValue="64.0" ID="Value" Value="{value}" StepSize="0.01"/>')
 	pma.append(f'<Parameter MinValue="0.0" MaxValue="1.0" ID="Multiply" Value="{multiply}"/>')
 	pma.append(f'<Parameter MinValue="0.0" MaxValue="1.0" ID="Add" Value="{add}"/>')
 	pma.append(f'</Parameters>')

@@ -114,14 +114,19 @@ def connect_AHDSR(ahdsr, connection_id, node_id, parameter_id):
 		if connection_id in line:
 			ahdsr.insert(idx+1, f'<Connection NodeId="{node_id}" ParameterId="{parameter_id}"/>')
 
-def create_parameter(name, min_value, max_value, step_size, value, node_id, parameter_id):
+def create_parameter(name, min_value, max_value, step_size, value):
 	for idx, line in enumerate(NETWORK_PARAMS):
 		if '<Parameters>' in line:
 			NETWORK_PARAMS.insert(idx+1, f'<Parameter ID="{name}" MinValue="{min_value}" MaxValue="{max_value}" StepSize="{step_size}" Value="{value}">')
 			NETWORK_PARAMS.insert(idx+2, f'<Connections>')
-			NETWORK_PARAMS.insert(idx+3, f'<Connection NodeId="{node_id}" ParameterId="{parameter_id}"/>')
-			NETWORK_PARAMS.insert(idx+4, f'</Connections>')			
-			NETWORK_PARAMS.insert(idx+5, f'</Parameter>')
+			#NETWORK_PARAMS.insert(idx+3, f'<Connection NodeId="{node_id}" ParameterId="{parameter_id}"/>')
+			NETWORK_PARAMS.insert(idx+3, f'</Connections>')			
+			NETWORK_PARAMS.insert(idx+4, f'</Parameter>')
+
+def connect_parameter(name, node_id, parameter_id):
+	for idx, line in enumerate(NETWORK_PARAMS):
+		if f'<Parameter ID="{name}"' in line:
+			NETWORK_PARAMS.insert(idx+2, f'<Connection NodeId="{node_id}" ParameterId="{parameter_id}"/>')
 
 def add_filter(name, frequency):
 	lowpassFilter = []
@@ -144,6 +149,29 @@ def add_filter(name, frequency):
 	lowpassFilter.append(f'</Parameters>')
 	lowpassFilter.append(f'</Node>')
 	return lowpassFilter
+
+def add_gain(name, invert=False):
+	gain = []
+	gain.append(f'<Node ID="{name}" FactoryPath="core.gain" Bypassed="0">')
+	gain.append(f'<Parameters>')
+	if invert:
+		gain.append(f'<Parameter MinValue="0" MaxValue="-100" StepSize="0.1000000014901161" SkewFactor="5.422270774841309" ID="Gain" Value="0.0"/>')
+	else:
+		gain.append(f'<Parameter MinValue="-100" MaxValue="0" StepSize="0.1000000014901161" SkewFactor="5.422270774841309" ID="Gain" Value="0.0"/>')
+	gain.append(f'<Parameter MinValue="0.0" MaxValue="1000.0" StepSize="0.1000000014901161" SkewFactor="0.3010300099849701" ID="Smoothing" Value="20.0"/>')
+	gain.append(f'<Parameter MinValue="-100.0" MaxValue="0.0" StepSize="0.1000000014901161" SkewFactor="5.422270774841309" ID="ResetValue" Value="0.0"/>')
+	gain.append(f'</Parameters>')
+	gain.append(f'</Node>')
+	return gain
+
+def add_tanh(name):
+	tanh = []
+	tanh.append(f'<Node ID="{name}" FactoryPath="math.tanh" Bypassed="0">')
+	tanh.append(f'<Parameters>')
+	tanh.append(f'<Parameter MinValue="0.0" MaxValue="1.0" ID="Value" Value="1.0"/>')
+	tanh.append(f'</Parameters>')
+	tanh.append(f'</Node>')
+	return tanh
 
 def add_voice_manager(name):
 	voice_manager = []
@@ -203,8 +231,21 @@ if __name__=="__main__":
 		#nodes.append(close_chain(f'sineR_{i}_chain'))
 		connect_AHDSR(ahdsr_gain, '<!-- CV -->', f'sineR_{i}', 'Gain')
 	nodes.append(split_close_R)
-
 	nodes.append(multi_close)
+
+	# Tanh
+
+	nodes.append(open_chain("tanhSplit", "container.split"))
+	nodes.append(open_chain("tanhOff", "container.chain"))
+	nodes.append(add_gain("tanhDry", invert=True))
+	nodes.append(close_chain("tanhOff"))
+	nodes.append(open_chain("tanhOn", "container.chain"))
+	nodes.append(add_tanh("tanh"))
+	nodes.append(add_gain("tanhWet", invert=False))
+	nodes.append(close_chain("tanhOn"))
+	nodes.append(close_chain("tanhSplit"))
+
+	# Filters
 	nodes.append(lowpassFilter)
 	nodes.append(voice_manager)
 	connect_AHDSR(ahdsr_gain, '<!-- GT -->', 'voiceManager', 'Kill Voice')
@@ -212,7 +253,9 @@ if __name__=="__main__":
 
 	# Create & Connect Parameters
 
-	create_parameter('derek', 0.0, 1.0, 0.1, 0.66, 'lowPass', 'Smoothing')
+	create_parameter('stiffness', 0.0, 1.0, 0.1, 0.0)
+	connect_parameter('stiffness', 'tanhDry', 'Gain')
+	connect_parameter('stiffness', 'tanhWet', 'Gain')
 
 	# Start Writers
 

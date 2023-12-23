@@ -18,8 +18,6 @@ def close_chain(name):
 	return chain
 
 def add_sine(name, freq_ratio):
-	# maybe test adjusting the min/max limits for inter-modal randomness?
-	# alternatively just use noteOn and set the ratios as parameters...
 	sine = []
 	sine.append(f'<!-- Oscillator {name} -->')
 	sine.append(f'<Node ID="{name}" FactoryPath="core.oscillator" Bypassed="0">')
@@ -191,6 +189,16 @@ def add_bang(name, default_value):
 	bang.append(f'</Parameters>')
 	bang.append(f'</Node>')
 	return bang
+
+def add_jpanner(name, default_value):
+	jpanner = []
+	jpanner.append(f'<Node ID="{name}" FactoryPath="jdsp.jpanner" Bypassed="0">')
+	jpanner.append(f'<Parameters>')
+	jpanner.append(f'<Parameter MinValue="-1.0" MaxValue="1.0" ID="Pan" Value="{default_value}"/>')
+	jpanner.append(f'<Parameter MinValue="0.0" MaxValue="6.0" StepSize="1.0" ID="Rule" Value="1.0"/>')
+	jpanner.append(f'</Parameters>')
+	jpanner.append(f'</Node>')
+	return jpanner
 
 #------------------------------------------------------------------------------------
 # CONNECTIONS

@@ -10,7 +10,7 @@ file = open(f'{PATH}/neatbrain.xml', 'w')
 
 # TO DO
 
-# add pan nodes when stereo 
+# add pan nodes when stereo x
 # setup velocity -> pitchAHDSR attack level or something
 # add filter cutoff static parameter
 # pitch bend (global pitch mod i think)
@@ -66,6 +66,7 @@ if __name__=="__main__":
 		nodes.append(modules.open_chain("multiChannel", "container.multi", folded=1))
 
 	# Left Channel
+	nodes.append(modules.open_chain("chainL", "container.chain"))
 	nodes.append(modules.open_chain("sines_splitterL", "container.split"))
 
 	# Build Sine Wave Chains
@@ -101,17 +102,21 @@ if __name__=="__main__":
 		modules.connect_module(pma_ahdsr, '<ModulationTargets>', f'sineL_{i}_pma_random', 'Value')
 		modules.connect_module(pma_random, '<ModulationTargets>', f'sineL_{i}_pma_randomGlobal', 'Value')
 		modules.connect_module(pma_randomGlobal, '<ModulationTargets>', f'sineL_{i}_pma_output', 'Add')
-		modules.connect_module(pma_output, '<ModulationTargets>', f'sineL_{i}', 'Freq Ratio')		
+		modules.connect_module(pma_output, '<ModulationTargets>', f'sineL_{i}', 'Freq Ratio')			
 	nodes.append(modules.close_chain("sines_splitterL"))
+	if STEREO_INSTRUMENT:
+		nodes.append(modules.add_jpanner("jpanLeft", -1.0))
+	nodes.append(modules.close_chain("chainL"))
 
 	if STEREO_INSTRUMENT:
 		# Right Channel
+		nodes.append(modules.open_chain("chainR", "container.chain"))
 		nodes.append(modules.open_chain("sines_splitterR", "container.split"))
 
 		# Build Sine Wave Chains
 		for i in range(NUM_MODES):
 			# Create Modules
-			nodes.append(modules.open_chain(f'sineR_{i}_chain', 'container.chain'))
+			nodes.append(modules.open_chain(f'sineR_{i}_chain', 'container.chain', folded=1))
 			bang_input = modules.add_bang(f'sineR_{i}_bangInput', 0.1)
 			cable = modules.add_cable_expr(f'sineR_{i}_cable', 'Math.random() * input')
 			bang_output = modules.add_bang(f'sineR_{i}_bangOutput', 1.0)
@@ -141,8 +146,10 @@ if __name__=="__main__":
 			modules.connect_module(pma_ahdsr, '<ModulationTargets>', f'sineR_{i}_pma_random', 'Value')
 			modules.connect_module(pma_random, '<ModulationTargets>', f'sineR_{i}_pma_randomGlobal', 'Value')
 			modules.connect_module(pma_randomGlobal, '<ModulationTargets>', f'sineR_{i}_pma_output', 'Add')
-			modules.connect_module(pma_output, '<ModulationTargets>', f'sineR_{i}', 'Freq Ratio')	
+			modules.connect_module(pma_output, '<ModulationTargets>', f'sineR_{i}', 'Freq Ratio')			
 		nodes.append(modules.close_chain("sines_splitterR"))
+		nodes.append(modules.add_jpanner("jpanRight", 1.0))
+		nodes.append(modules.close_chain("chainR"))
 		nodes.append(modules.close_chain("multiChannel"))
 
 	# Tanh

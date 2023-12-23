@@ -44,7 +44,6 @@ if __name__=="__main__":
 
 	# Instantiate Nodes
 
-	#ahdsr_gain = modules.add_AHDSR("ahdsrGain", 5.0, 1.0, 18000, 0.0, 50) # A AL D S R 
 	ahdsr_pitch = modules.add_AHDSR("ahdsrPitch", 5.0, 1.0, 18000, 0.0, 50) # A AL D S R 
 	ahdsr_filter = modules.add_AHDSR("ahdsrFilter", 5.0, 1.0, 4000, 0.0, 50) # A AL D S R 
 
@@ -66,16 +65,16 @@ if __name__=="__main__":
 		nodes.append(modules.open_chain(f'sineL_{i}_chain', 'container.chain'))
 		pma_ahdsrStrength = modules.add_pma(f'sineL_{i}_pma_ahdsrStrength', 1.0, 0.3, 1.0) # Connect Multiply to "Strength" Param, connect Value to AHDSR_Pitch
 		pma_ahdsr = modules.add_pma(f'sineL_{i}_pma_ahdsr', 1.0, 1.0, 1.0) # Connect Value to "Modes{i}", connect Add to previous PMA
+		#bang_input = modules.add_bang()
 		nodes.append(pma_ahdsrStrength) 
 		nodes.append(pma_ahdsr) 
 		nodes.append(modules.add_sine(f'sineL_{i}', 1.0 + (1.0*i)))
 		nodes.append(modules.add_gain(f'sineL_{i}_gain', False))
 		nodes.append(modules.close_chain(f'sineL_{i}_chain'))
 		# Connect Modules
-		#modules.connect_AHDSR(ahdsr_gain, '<!-- CV -->', f'sineL_{i}_gain', 'Gain')
-		modules.connect_AHDSR(ahdsr_pitch, '<!-- CV -->', f'sineL_{i}_pma_ahdsrStrength', 'Value')
-		modules.connect_pma(pma_ahdsrStrength, f'sineL_{i}_pma_ahdsr', "Add")
-		modules.connect_pma(pma_ahdsr, f'sineL_{i}', "Freq Ratio")
+		modules.connect_module(ahdsr_pitch, '<!-- CV -->', f'sineL_{i}_pma_ahdsrStrength', 'Value')
+		modules.connect_module(pma_ahdsrStrength, '<ModulationTargets>', f'sineL_{i}_pma_ahdsr', 'Add')
+		modules.connect_module(pma_ahdsr, '<ModulationTargets>', f'sineL_{i}', 'Freq Ratio')
 	nodes.append(modules.close_chain("sines_splitterL"))
 
 	# Right Channel
@@ -93,10 +92,9 @@ if __name__=="__main__":
 		nodes.append(modules.add_gain(f'sineR_{i}_gain', False))
 		nodes.append(modules.close_chain(f'sineR_{i}_chain'))
 		# Connect Modules
-		#modules.connect_AHDSR(ahdsr_gain, '<!-- CV -->', f'sineR_{i}_gain', 'Gain')
-		modules.connect_AHDSR(ahdsr_pitch, '<!-- CV -->', f'sineR_{i}_pma_ahdsrStrength', 'Value')
-		modules.connect_pma(pma_ahdsrStrength, f'sineR_{i}_pma_ahdsr', "Add")
-		modules.connect_pma(pma_ahdsr, f'sineR_{i}', "Freq Ratio")
+		modules.connect_module(ahdsr_pitch, '<!-- CV -->', f'sineR_{i}_pma_ahdsrStrength', 'Value')
+		modules.connect_module(pma_ahdsrStrength, '<ModulationTargets>', f'sineR_{i}_pma_ahdsr', 'Add')
+		modules.connect_module(pma_ahdsr, '<ModulationTargets>', f'sineR_{i}', 'Freq Ratio')
 	nodes.append(modules.close_chain("sines_splitterR"))
 	nodes.append(modules.close_chain("multiChannel"))
 
@@ -115,9 +113,7 @@ if __name__=="__main__":
 	# Filters
 	nodes.append(modules.add_filter('lowPass', 2000))
 	nodes.append(modules.add_filter('ahdsrFilter', 4000))
-	#nodes.append(modules.add_voice_manager('voiceManager'))
-	#modules.connect_AHDSR(ahdsr_gain, '<!-- GT -->', 'voiceManager', 'Kill Voice')
-	modules.connect_AHDSR(ahdsr_filter, '<!-- CV -->', 'ahdsrFilter', 'Frequency')
+	modules.connect_module(ahdsr_filter, '<!-- CV -->', 'ahdsrFilter', 'Frequency')
 
 	# PMA Connections
 

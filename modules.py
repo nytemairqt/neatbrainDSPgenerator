@@ -143,28 +143,40 @@ def add_pma(name, value, multiply, add):
 	pma.append(f'</Node>')
 	return pma
 
-def add_core_expr(name):
-	# does the expression get saved to the XML?
-	# YEP
-	# <Property ID="Code" Value="Math.random()"/>
-	return
+def add_cable_expr(name, code):
+	expr = []
+	expr.append(f'<Node ID="{name}" FactoryPath="control.cable_expr" Bypassed="0">')
+	expr.append(f'<Properties>')
+	expr.append(f'<Property ID="Code" Value="{code}"/>')
+	expr.append(f'<Property ID="Debug" Value="0"/>')
+	expr.append(f'</Properties>')
+	expr.append(f'<ModulationTargets>')
+	expr.append(f'</ModulationTargets>')
+	expr.append(f'<Parameters>')
+	expr.append(f'<Parameter MinValue="0.0" MaxValue="1.0" ID="Value"/>')
+	expr.append(f'</Parameters>')
+	expr.append(f'</Node>')
+	return expr
 
 def add_bang(name):
-	return
+	bang = []
+	bang.append(f'<Node ID="{name}" FactoryPath="control.voice_bang" Bypassed="0">')
+	bang.append(f'<ModulationTargets>')	
+	bang.append(f'</ModulationTargets>')
+	bang.append(f'<Parameters>')
+	bang.append(f'<Parameter MinValue="0.0" MaxValue="1.0" ID="Value" Value="1.0"/>')
+	bang.append(f'</Parameters>')
+	bang.append(f'</Node>')
+	return bang
 
 #------------------------------------------------------------------------------------
 # CONNECTIONS
 #------------------------------------------------------------------------------------
 
-def connect_AHDSR(ahdsr, connection_id, node_id, parameter_id):
-	for idx, line in enumerate(ahdsr):
-		if connection_id in line:
-			ahdsr.insert(idx+1, f'<Connection NodeId="{node_id}" ParameterId="{parameter_id}"/>')
-
-def connect_pma(pma, node_id, parameter_id):
-	for idx, line in enumerate(pma):
-		if '<ModulationTargets>' in line:
-			pma.insert(idx+1, f'<Connection NodeId="{node_id}" ParameterId="{parameter_id}"/>')
+def connect_module(module, connection, node_id, parameter_id):
+	for idx, line in enumerate(module):
+		if connection in line:
+			module.insert(idx+1, f'<Connection NodeId="{node_id}" ParameterId="{parameter_id}"/>')
 
 def create_parameter(params, name, min_value, max_value, step_size, value):
 	for idx, line in enumerate(params):

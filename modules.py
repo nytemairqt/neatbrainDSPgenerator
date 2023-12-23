@@ -112,6 +112,19 @@ def add_gain(name, invert=False):
 	gain.append(f'</Node>')
 	return gain
 
+def add_expr(name, code):
+	expr = []
+	expr.append(f'<Node ID="{name}" FactoryPath="math.expr" Bypassed="0">')
+	expr.append(f'<Properties>')
+	expr.append(f'<Property ID="Code" Value="{code}"/>')
+	expr.append(f'<Property ID="Debug" Value="0"/>')
+	expr.append(f'</Properties>')
+	expr.append(f'<Parameters>')
+	expr.append(f'<Parameter MinValue="0.0" MaxValue="1.0" ID="Value" Value="1.0"/>')
+	expr.append(f'</Parameters>')
+	expr.append(f'</Node>')
+	return expr
+
 def add_tanh(name):
 	tanh = []
 	tanh.append(f'<Node ID="{name}" FactoryPath="math.tanh" Bypassed="0">')
@@ -120,6 +133,16 @@ def add_tanh(name):
 	tanh.append(f'</Parameters>')
 	tanh.append(f'</Node>')
 	return tanh
+
+def add_abs(name):
+	absolute = []
+	absolute.append(f'<Node ID="{name}" FactoryPath="math.abs" Bypassed="0">')
+	absolute.append(f'<Parameters>')
+	absolute.append(f'<Parameter MinValue="0.0" MaxValue="1.0" ID="Value" Value="1.0"/>')
+	absolute.append(f'</Parameters>')
+	absolute.append(f'</Node>')
+	return absolute
+
 
 def add_voice_manager(name):
 	voice_manager = []

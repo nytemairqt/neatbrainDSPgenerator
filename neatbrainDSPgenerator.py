@@ -63,9 +63,12 @@ if __name__=="__main__":
 	for i in range(NUM_MODES):
 		# Create Modules
 		nodes.append(modules.open_chain(f'sineL_{i}_chain', 'container.chain'))
+		bang_input = modules.add_bang(f'sineL_{i}_bangInput')
+		cable = modules.add_cable_expr(f'sineL_{i}_cable', 'Math.random() * .1')
+		bang_out = modules.add_bang(f'sineL_{i}_bangOutput')
 		pma_ahdsrStrength = modules.add_pma(f'sineL_{i}_pma_ahdsrStrength', 1.0, 0.3, 1.0) # Connect Multiply to "Strength" Param, connect Value to AHDSR_Pitch
 		pma_ahdsr = modules.add_pma(f'sineL_{i}_pma_ahdsr', 1.0, 1.0, 1.0) # Connect Value to "Modes{i}", connect Add to previous PMA
-		#bang_input = modules.add_bang()
+		
 		nodes.append(pma_ahdsrStrength) 
 		nodes.append(pma_ahdsr) 
 		nodes.append(modules.add_sine(f'sineL_{i}', 1.0 + (1.0*i)))
@@ -84,6 +87,9 @@ if __name__=="__main__":
 	for i in range(NUM_MODES):
 		# Create Modules
 		nodes.append(modules.open_chain(f'sineR_{i}_chain', 'container.chain'))
+		bang_input = modules.add_bang(f'sineR_{i}_bangInput')
+		cable = modules.add_cable_expr(f'sineR_{i}_cable', 'Math.random() * .1')
+		bang_out = modules.add_bang(f'sineR_{i}_bangOutput')
 		pma_ahdsrStrength = modules.add_pma(f'sineR_{i}_pma_ahdsrStrength', 1.0, 0.3, 1.0) # Connect Multiply to "Strength" Param, connect Value to AHDSR_Pitch
 		pma_ahdsr = modules.add_pma(f'sineR_{i}_pma_ahdsr', 1.0, 1.0, 1.0) # Connect Value to "Modes{i}", connect Add to previous PMA
 		nodes.append(pma_ahdsrStrength) 
@@ -105,7 +111,8 @@ if __name__=="__main__":
 	nodes.append(modules.add_gain("tanhDry", invert=True))
 	nodes.append(modules.close_chain("tanhOff"))
 	nodes.append(modules.open_chain("tanhOn", "container.chain"))
-	nodes.append(modules.add_tanh("tanh"))
+	nodes.append(modules.add_expr("tanh", 'input + Math.tanh(input)'))
+	nodes.append(modules.add_expr("abs", 'input + Math.abs(input)'))
 	nodes.append(modules.add_gain("tanhWet", invert=False))
 	nodes.append(modules.close_chain("tanhOn"))
 	nodes.append(modules.close_chain("tanhSplit"))
@@ -121,7 +128,7 @@ if __name__=="__main__":
 
 	# Create & Connect Parameters
 
-	modules.create_parameter(NETWORK_PARAMS, 'stiffness', 0.0, 1.0, 0.1, 0.0)
+	modules.create_parameter(NETWORK_PARAMS, 'stiffness', 0.0, 1.0, 0.01, 0.0)
 	modules.connect_parameter(NETWORK_PARAMS, 'stiffness', 'tanhDry', 'Gain')
 	modules.connect_parameter(NETWORK_PARAMS, 'stiffness', 'tanhWet', 'Gain')
 

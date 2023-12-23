@@ -2,11 +2,15 @@
 # NODES
 #------------------------------------------------------------------------------------
 
-def open_chain(name, chain_type, folded=0):
+def open_chain(name, chain_type, folded=0, extra_prop=None):
 	chain = []
 	chain.append(f'<!-- Begin Chain {name} -->')
 	chain.append(f'<Node ID="{name}" FactoryPath="{chain_type}" Bypassed="0" Folded="{folded}">') # container.chain, container.split
-	chain.append(f'<Nodes>')
+	if extra_prop != None:
+		chain.append(f'<Properties>')
+		chain.append(extra_prop)
+		chain.append(f'</Properties>')
+	chain.append(f'<Nodes>')	
 	return chain
 
 def close_chain(name):
@@ -123,25 +127,6 @@ def add_expr(name, code):
 	expr.append(f'</Node>')
 	return expr
 
-def add_tanh(name):
-	tanh = []
-	tanh.append(f'<Node ID="{name}" FactoryPath="math.tanh" Bypassed="0">')
-	tanh.append(f'<Parameters>')
-	tanh.append(f'<Parameter MinValue="0.0" MaxValue="1.0" ID="Value" Value="1.0"/>')
-	tanh.append(f'</Parameters>')
-	tanh.append(f'</Node>')
-	return tanh
-
-def add_abs(name):
-	absolute = []
-	absolute.append(f'<Node ID="{name}" FactoryPath="math.abs" Bypassed="0">')
-	absolute.append(f'<Parameters>')
-	absolute.append(f'<Parameter MinValue="0.0" MaxValue="1.0" ID="Value" Value="1.0"/>')
-	absolute.append(f'</Parameters>')
-	absolute.append(f'</Node>')
-	return absolute
-
-
 def add_voice_manager(name):
 	voice_manager = []
 	voice_manager.append(f'<Node ID="{name}" FactoryPath="envelope.voice_manager" Bypassed="0">')
@@ -199,6 +184,86 @@ def add_jpanner(name, default_value):
 	jpanner.append(f'</Parameters>')
 	jpanner.append(f'</Node>')
 	return jpanner
+
+def add_switcher(name):
+	switcher = []
+	switcher.append(f'<!-- Start Switcher -->')
+	switcher.append(f'<Node ID="{name}" FactoryPath="container.chain" ShowParameters="1" Bypassed="0">')
+	switcher.append(f'<Nodes>')
+	switcher.append(f'<Node ID="switcher" FactoryPath="control.xfader" Bypassed="0">') # Start Switcher
+	switcher.append(f'<Properties>')
+	switcher.append(f'<Property ID="NumParameters" Value="2"/>')
+	switcher.append(f'<Property ID="Mode" Value="Switch"/>')
+	switcher.append(f'</Properties>')
+	switcher.append(f'<SwitchTargets>')
+	switcher.append(f'<SwitchTarget>')
+	switcher.append(f'<Connections>')
+	switcher.append(f'<Connection NodeId="tanhBypass" ParameterId="Bypassed"/>') # 'tanhBypass'
+	switcher.append(f'</Connections>')
+	switcher.append(f'</SwitchTarget>')
+	switcher.append(f'<SwitchTarget>')
+	switcher.append(f'<Connections>')
+	switcher.append(f'<Connection NodeId="absBypass" ParameterId="Bypassed"/>') # 'absBypass'
+	switcher.append(f'</Connections>')
+	switcher.append(f'</SwitchTarget>')
+	switcher.append(f'</SwitchTargets>')
+	switcher.append(f'<Parameters>')
+	switcher.append(f'<Parameter MinValue="0.0" MaxValue="1.0" ID="Value" Value="0.0"/>')
+	switcher.append(f'</Parameters>')
+	switcher.append(f'</Node>')
+	switcher.append(f'<Node ID="sb_container" FactoryPath="container.chain" Bypassed="0">')
+	switcher.append(f'<Properties>')
+	switcher.append(f'<Property ID="IsVertical" Value="0"/>')
+	switcher.append(f'</Properties>')
+	switcher.append(f'<Nodes>')
+	switcher.append(f'<Node ID="tanhBypass" FactoryPath="container.soft_bypass" Bypassed="0">')
+	switcher.append(f'<Nodes>')
+	switcher.append(f'<Node ID="tanh" FactoryPath="math.expr" Bypassed="0">')
+	switcher.append(f'<Properties>')
+	switcher.append(f'<Property ID="Code" Value="input + Math.tanh(input)"/>') # TANH
+	switcher.append(f'<Property ID="Debug" Value="0"/>')
+	switcher.append(f'</Properties>')
+	switcher.append(f'<Parameters>')
+	switcher.append(f'<Parameter MinValue="0.0" MaxValue="1.0" ID="Value" Value="1.0"/>')
+	switcher.append(f'</Parameters>')
+	switcher.append(f'</Node>')
+	switcher.append(f'</Nodes>')
+	switcher.append(f'<Properties>')
+	switcher.append(f'<Property ID="SmoothingTime" Value="20"/>')
+	switcher.append(f'</Properties>')
+	switcher.append(f'<Parameters/>')
+	switcher.append(f'</Node>')
+	switcher.append(f'<Node ID="absBypass" FactoryPath="container.soft_bypass" Bypassed="0">')
+	switcher.append(f'<Nodes>')
+	switcher.append(f'<Node ID="abs" FactoryPath="math.expr" Bypassed="0">')
+	switcher.append(f'<Properties>')
+	switcher.append(f'<Property ID="Code" Value="input + Math.abs(input)"/>') # ABS
+	switcher.append(f'<Property ID="Debug" Value="0"/>')
+	switcher.append(f'</Properties>')
+	switcher.append(f'<Parameters>')
+	switcher.append(f'<Parameter MinValue="0.0" MaxValue="1.0" ID="Value" Value="1.0"/>')
+	switcher.append(f'</Parameters>')
+	switcher.append(f'</Node>')
+	switcher.append(f'</Nodes>')
+	switcher.append(f'<Properties>')
+	switcher.append(f'<Property ID="SmoothingTime" Value="20"/>')
+	switcher.append(f'</Properties>')
+	switcher.append(f'<Parameters/>')
+	switcher.append(f'</Node>') # End of sb2
+	switcher.append(f'</Nodes>')
+	switcher.append(f'<Parameters/>')
+	switcher.append(f'</Node>') 
+	switcher.append(f'</Nodes>') # End of sb_container
+	switcher.append(f'<Parameters>')
+	switcher.append(f'<Parameter MinValue="0.0" MaxValue="1.0" StepSize="1.0" ID="Type" Value="0.0">') # CONNECT
+	switcher.append(f'<Connections>')
+	switcher.append(f'<Connection NodeId="switcher" ParameterId="Value"/>')
+	switcher.append(f'</Connections>')
+	switcher.append(f'</Parameter>')
+	switcher.append(f'</Parameters>')
+	switcher.append(f'</Node>')
+	switcher.append(f'<!-- End Switcher -->')
+	return switcher
 
 #------------------------------------------------------------------------------------
 # CONNECTIONS

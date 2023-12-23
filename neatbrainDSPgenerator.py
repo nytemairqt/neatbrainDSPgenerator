@@ -39,13 +39,13 @@ NETWORK_END.append('</Network>')
 # Parameters
 
 modules.create_parameter(NETWORK_PARAMS, 'stiffness', 0.0, 1.0, 0.01, 0.0)
+modules.create_parameter(NETWORK_PARAMS, 'stiffnessType', 0.0, 1.0, 1.0, 0.0) # Connect to Bypasses of Tanh & Abs
 modules.create_parameter(NETWORK_PARAMS, 'pitchVelocity', 0.0, 1.0, 0.01, 0.0)
 modules.create_parameter(NETWORK_PARAMS, 'pitchFalloffIntensity', 0.0, 1.0, 0.01, PITCH_FALLOFF_INTENSITY)
 modules.create_parameter(NETWORK_PARAMS, 'pitchFalloffDecay', 20, 20000, 1, PITCH_FALLOFF_DECAY)
 modules.create_parameter(NETWORK_PARAMS, 'filterFalloffDecay', 20, 20000, 1, FILTER_FALLOFF_DECAY)
 
 # Connections
-
 
 if __name__=="__main__":
 	# be careful using restoreState() on the scriptnode synth
@@ -152,15 +152,14 @@ if __name__=="__main__":
 		nodes.append(modules.close_chain("chainR"))
 		nodes.append(modules.close_chain("multiChannel"))
 
-	# Tanh
+	# Stiffness
 
 	nodes.append(modules.open_chain("tanhSplit", "container.split"))
 	nodes.append(modules.open_chain("tanhOff", "container.chain"))
 	nodes.append(modules.add_gain("tanhDry", invert=True))
 	nodes.append(modules.close_chain("tanhOff"))
 	nodes.append(modules.open_chain("tanhOn", "container.chain"))
-	nodes.append(modules.add_expr("tanh", 'input + Math.tanh(input)'))
-	nodes.append(modules.add_expr("abs", 'input + Math.abs(input)'))
+	nodes.append(modules.add_switcher("stiffnessSwitch"))
 	nodes.append(modules.add_gain("tanhWet", invert=False))
 	nodes.append(modules.close_chain("tanhOn"))
 	nodes.append(modules.close_chain("tanhSplit"))
@@ -175,6 +174,7 @@ if __name__=="__main__":
 	modules.connect_parameter(NETWORK_PARAMS, 'filterFalloffDecay', 'ahdsrFilter', 'Decay')
 	modules.connect_parameter(NETWORK_PARAMS, 'stiffness', 'tanhDry', 'Gain')
 	modules.connect_parameter(NETWORK_PARAMS, 'stiffness', 'tanhWet', 'Gain')
+	modules.connect_parameter(NETWORK_PARAMS, 'stiffnessType', 'stiffnessSwitch', 'Type')
 
 	# Start Writers
 

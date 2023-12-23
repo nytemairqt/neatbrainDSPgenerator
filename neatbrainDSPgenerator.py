@@ -65,16 +65,21 @@ if __name__=="__main__":
 		nodes.append(modules.open_chain(f'sineL_{i}_chain', 'container.chain'))
 		bang_input = modules.add_bang(f'sineL_{i}_bangInput')
 		cable = modules.add_cable_expr(f'sineL_{i}_cable', 'Math.random() * .1')
-		bang_out = modules.add_bang(f'sineL_{i}_bangOutput')
+		bang_output = modules.add_bang(f'sineL_{i}_bangOutput')
 		pma_ahdsrStrength = modules.add_pma(f'sineL_{i}_pma_ahdsrStrength', 1.0, 0.3, 1.0) # Connect Multiply to "Strength" Param, connect Value to AHDSR_Pitch
 		pma_ahdsr = modules.add_pma(f'sineL_{i}_pma_ahdsr', 1.0, 1.0, 1.0) # Connect Value to "Modes{i}", connect Add to previous PMA
-		
+		nodes.append(bang_input)
+		nodes.append(cable)
+		nodes.append(bang_output)
 		nodes.append(pma_ahdsrStrength) 
 		nodes.append(pma_ahdsr) 
 		nodes.append(modules.add_sine(f'sineL_{i}', 1.0 + (1.0*i)))
 		nodes.append(modules.add_gain(f'sineL_{i}_gain', False))
 		nodes.append(modules.close_chain(f'sineL_{i}_chain'))
 		# Connect Modules
+		modules.connect_module(bang_input, '<ModulationTargets>', f'sineL_{i}_cable', 'Value')
+		modules.connect_module(cable, '<ModulationTargets>', f'sineL_{i}_bangOutput', 'Value')
+		# add pma here
 		modules.connect_module(ahdsr_pitch, '<!-- CV -->', f'sineL_{i}_pma_ahdsrStrength', 'Value')
 		modules.connect_module(pma_ahdsrStrength, '<ModulationTargets>', f'sineL_{i}_pma_ahdsr', 'Add')
 		modules.connect_module(pma_ahdsr, '<ModulationTargets>', f'sineL_{i}', 'Freq Ratio')
@@ -89,15 +94,21 @@ if __name__=="__main__":
 		nodes.append(modules.open_chain(f'sineR_{i}_chain', 'container.chain'))
 		bang_input = modules.add_bang(f'sineR_{i}_bangInput')
 		cable = modules.add_cable_expr(f'sineR_{i}_cable', 'Math.random() * .1')
-		bang_out = modules.add_bang(f'sineR_{i}_bangOutput')
+		bang_output = modules.add_bang(f'sineR_{i}_bangOutput')
 		pma_ahdsrStrength = modules.add_pma(f'sineR_{i}_pma_ahdsrStrength', 1.0, 0.3, 1.0) # Connect Multiply to "Strength" Param, connect Value to AHDSR_Pitch
 		pma_ahdsr = modules.add_pma(f'sineR_{i}_pma_ahdsr', 1.0, 1.0, 1.0) # Connect Value to "Modes{i}", connect Add to previous PMA
+		nodes.append(bang_input)
+		nodes.append(cable)
+		nodes.append(bang_output)
 		nodes.append(pma_ahdsrStrength) 
 		nodes.append(pma_ahdsr) 		
 		nodes.append(modules.add_sine(f'sineR_{i}', 1.0 + (1.0*i))) 
 		nodes.append(modules.add_gain(f'sineR_{i}_gain', False))
 		nodes.append(modules.close_chain(f'sineR_{i}_chain'))
 		# Connect Modules
+		modules.connect_module(bang_input, '<ModulationTargets>', f'sineR_{i}_cable', 'Value')
+		modules.connect_module(cable, '<ModulationTargets>', f'sineR_{i}_bangOutput', 'Value')
+		# add pma here
 		modules.connect_module(ahdsr_pitch, '<!-- CV -->', f'sineR_{i}_pma_ahdsrStrength', 'Value')
 		modules.connect_module(pma_ahdsrStrength, '<ModulationTargets>', f'sineR_{i}_pma_ahdsr', 'Add')
 		modules.connect_module(pma_ahdsr, '<ModulationTargets>', f'sineR_{i}', 'Freq Ratio')
@@ -120,11 +131,7 @@ if __name__=="__main__":
 	# Filters
 	nodes.append(modules.add_filter('lowPass', 2000))
 	nodes.append(modules.add_filter('ahdsrFilter', 4000))
-	modules.connect_module(ahdsr_filter, '<!-- CV -->', 'ahdsrFilter', 'Frequency')
-
-	# PMA Connections
-
-	#modules.connect_pma(pma, node_id, parameter_id)
+	modules.connect_module(ahdsr_filter, '<!-- CV -->', 'ahdsrFilter', 'Frequency')	
 
 	# Create & Connect Parameters
 

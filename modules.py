@@ -176,18 +176,18 @@ def add_cable_expr(name, code):
 	expr.append(f'<ModulationTargets>')
 	expr.append(f'</ModulationTargets>')
 	expr.append(f'<Parameters>')
-	expr.append(f'<Parameter MinValue="0.0" MaxValue="1.0" ID="Value"/>')
+	expr.append(f'<Parameter MinValue="0.0" MaxValue="1.0" ID="Value" Value="1.0"/>')
 	expr.append(f'</Parameters>')
 	expr.append(f'</Node>')
 	return expr
 
-def add_bang(name):
+def add_bang(name, default_value):
 	bang = []
 	bang.append(f'<Node ID="{name}" FactoryPath="control.voice_bang" Bypassed="0">')
 	bang.append(f'<ModulationTargets>')	
 	bang.append(f'</ModulationTargets>')
 	bang.append(f'<Parameters>')
-	bang.append(f'<Parameter MinValue="0.0" MaxValue="1.0" ID="Value" Value="1.0"/>')
+	bang.append(f'<Parameter MinValue="0.0" MaxValue="1.0" ID="Value" Value="{default_value}"/>')
 	bang.append(f'</Parameters>')
 	bang.append(f'</Node>')
 	return bang

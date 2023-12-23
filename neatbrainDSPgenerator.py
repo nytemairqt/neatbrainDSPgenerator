@@ -3,6 +3,9 @@
 string = '<?xml version="1.0" encoding="UTF-8"?>'
 PATH = 'D:/Documents/HISE/neatbraintestingSCRIPTNODE/DspNetworks/Networks'
 
+import modules
+
+
 file = open(f'{PATH}/neatbrain.xml', 'w')
 
 # load modes & hyperparams as a JSON object
@@ -34,6 +37,8 @@ NETWORK_END.append('</Node>')
 NETWORK_END.append('</Network>')
 
 # Individual Nodes
+
+'''
 
 def open_chain(name, chain_type):
 	chain = []
@@ -182,6 +187,7 @@ def add_voice_manager(name):
 	voice_manager.append(f'</Node>')
 	return voice_manager
 
+'''
 
 # Connections
 
@@ -191,17 +197,18 @@ if __name__=="__main__":
 
 	# Instantiate Nodes
 
-	ahdsr_gain = add_AHDSR("ahdsrGain", 5.0, 1.0, 18000, 0.0, 50) # A AL D S R 
-	ahdsr_pitch = add_AHDSR("ahdsrPitch", 5.0, 1.0, 18000, 0.0, 50) # A AL D S R 
-	ahdsr_filter = add_AHDSR("ahdsrFilter", 5.0, 1.0, 4000, 0.0, 50) # A AL D S R 
-	multi = open_chain("multiChannel", "container.multi")
-	multi_close = close_chain("multiChannel")
-	split_L = open_chain("sines_splitterL", "container.split")
-	split_R = open_chain("sines_splitterR", "container.split")
-	split_close_L = close_chain("sines_splitterL")
-	split_close_R = close_chain("sines_splitterR")
-	voice_manager = add_voice_manager('voiceManager')
-	lowpassFilter = add_filter('lowPass', 2000)
+	ahdsr_gain = modules.add_AHDSR("ahdsrGain", 5.0, 1.0, 18000, 0.0, 50) # A AL D S R 
+	ahdsr_pitch = modules.add_AHDSR("ahdsrPitch", 5.0, 1.0, 18000, 0.0, 50) # A AL D S R 
+	ahdsr_filter = modules.add_AHDSR("ahdsrFilter", 5.0, 1.0, 4000, 0.0, 50) # A AL D S R 
+	multi = modules.open_chain("multiChannel", "container.multi")
+	multi_close = modules.close_chain("multiChannel")
+	split_L = modules.open_chain("sines_splitterL", "container.split")
+	split_R = modules.open_chain("sines_splitterR", "container.split")
+	split_close_L = modules.close_chain("sines_splitterL")
+	split_close_R = modules.close_chain("sines_splitterR")
+	voice_manager = modules.add_voice_manager('voiceManager')
+	lowpassFilter = modules.add_filter('lowPass', 2000)
+	ahdsrFilter = modules.add_filter('ahdsrFilter', 4000)
 
 	nodes = []
 
@@ -215,10 +222,10 @@ if __name__=="__main__":
 
 	# Build Sine Wave Chains
 	for i in range(NUM_MODES):
-		#nodes.append(open_chain(f'sineL_{i}_chain', 'container.chain'))
-		nodes.append(add_sine(f'sineL_{i}', 1.0 + (1.0*i))) # ratios[i]
-		#nodes.append(close_chain(f'sineL_{i}_chain'))
-		connect_AHDSR(ahdsr_gain, '<!-- CV -->', f'sineL_{i}', 'Gain')
+		nodes.append(modules.open_chain(f'sineL_{i}_chain', 'container.chain'))
+		nodes.append(modules.add_sine(f'sineL_{i}', 1.0 + (1.0*i))) # ratios[i]
+		nodes.append(modules.close_chain(f'sineL_{i}_chain'))
+		modules.connect_AHDSR(ahdsr_gain, '<!-- CV -->', f'sineL_{i}', 'Gain')
 	nodes.append(split_close_L)
 
 	# Right Channel
@@ -226,36 +233,37 @@ if __name__=="__main__":
 
 	# Build Sine Wave Chains
 	for i in range(NUM_MODES):
-		#nodes.append(open_chain(f'sineR_{i}_chain', 'container.chain'))
-		nodes.append(add_sine(f'sineR_{i}', 1.0 + (1.0*i))) # ratios[i]
-		#nodes.append(close_chain(f'sineR_{i}_chain'))
-		connect_AHDSR(ahdsr_gain, '<!-- CV -->', f'sineR_{i}', 'Gain')
+		nodes.append(modules.open_chain(f'sineR_{i}_chain', 'container.chain'))
+		nodes.append(modules.add_sine(f'sineR_{i}', 1.0 + (1.0*i))) # ratios[i]
+		nodes.append(modules.close_chain(f'sineR_{i}_chain'))
+		modules.connect_AHDSR(ahdsr_gain, '<!-- CV -->', f'sineR_{i}', 'Gain')
 	nodes.append(split_close_R)
 	nodes.append(multi_close)
 
 	# Tanh
 
-	nodes.append(open_chain("tanhSplit", "container.split"))
-	nodes.append(open_chain("tanhOff", "container.chain"))
-	nodes.append(add_gain("tanhDry", invert=True))
-	nodes.append(close_chain("tanhOff"))
-	nodes.append(open_chain("tanhOn", "container.chain"))
-	nodes.append(add_tanh("tanh"))
-	nodes.append(add_gain("tanhWet", invert=False))
-	nodes.append(close_chain("tanhOn"))
-	nodes.append(close_chain("tanhSplit"))
+	nodes.append(modules.open_chain("tanhSplit", "container.split"))
+	nodes.append(modules.open_chain("tanhOff", "container.chain"))
+	nodes.append(modules.add_gain("tanhDry", invert=True))
+	nodes.append(modules.close_chain("tanhOff"))
+	nodes.append(modules.open_chain("tanhOn", "container.chain"))
+	nodes.append(modules.add_tanh("tanh"))
+	nodes.append(modules.add_gain("tanhWet", invert=False))
+	nodes.append(modules.close_chain("tanhOn"))
+	nodes.append(modules.close_chain("tanhSplit"))
 
 	# Filters
 	nodes.append(lowpassFilter)
+	nodes.append(ahdsrFilter)
 	nodes.append(voice_manager)
-	connect_AHDSR(ahdsr_gain, '<!-- GT -->', 'voiceManager', 'Kill Voice')
-	connect_AHDSR(ahdsr_gain, '<!-- CV -->', 'lowPass', 'Frequency')
+	modules.connect_AHDSR(ahdsr_gain, '<!-- GT -->', 'voiceManager', 'Kill Voice')
+	modules.connect_AHDSR(ahdsr_gain, '<!-- CV -->', 'ahdsrFilter', 'Frequency')
 
 	# Create & Connect Parameters
 
-	create_parameter('stiffness', 0.0, 1.0, 0.1, 0.0)
-	connect_parameter('stiffness', 'tanhDry', 'Gain')
-	connect_parameter('stiffness', 'tanhWet', 'Gain')
+	modules.create_parameter(NETWORK_PARAMS, 'stiffness', 0.0, 1.0, 0.1, 0.0)
+	modules.connect_parameter(NETWORK_PARAMS, 'stiffness', 'tanhDry', 'Gain')
+	modules.connect_parameter(NETWORK_PARAMS, 'stiffness', 'tanhWet', 'Gain')
 
 	# Start Writers
 

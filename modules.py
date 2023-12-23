@@ -2,10 +2,10 @@
 # NODES
 #------------------------------------------------------------------------------------
 
-def open_chain(name, chain_type):
+def open_chain(name, chain_type, folded=0):
 	chain = []
 	chain.append(f'<!-- Begin Chain {name} -->')
-	chain.append(f'<Node ID="{name}" FactoryPath="{chain_type}" Bypassed="0">') # container.chain, container.split
+	chain.append(f'<Node ID="{name}" FactoryPath="{chain_type}" Bypassed="0" Folded="{folded}">') # container.chain, container.split
 	chain.append(f'<Nodes>')
 	return chain
 

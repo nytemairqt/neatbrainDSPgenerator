@@ -6,11 +6,14 @@ PATH = 'D:/Documents/HISE/neatbraintestingSCRIPTNODE/DspNetworks/Networks'
 import modules
 from hyperparameters import *
 
-
 file = open(f'{PATH}/neatbrain.xml', 'w')
 
-# load modes & hyperparams as a JSON object
-# get loris to extract the amplitude envelopes
+# TO DO
+
+# add pan nodes when stereo 
+# setup velocity -> pitchAHDSR attack level or something
+# add filter cutoff static parameter
+# pitch bend (global pitch mod i think)
 
 # Instantiate XML Doc
 
@@ -60,7 +63,7 @@ if __name__=="__main__":
 	nodes.append(ahdsr_pitch)
 
 	if STEREO_INSTRUMENT:
-		nodes.append(modules.open_chain("multiChannel", "container.multi"))
+		nodes.append(modules.open_chain("multiChannel", "container.multi", folded=1))
 
 	# Left Channel
 	nodes.append(modules.open_chain("sines_splitterL", "container.split"))
@@ -68,7 +71,7 @@ if __name__=="__main__":
 	# Build Sine Wave Chains
 	for i in range(NUM_MODES):
 		# Create Modules
-		nodes.append(modules.open_chain(f'sineL_{i}_chain', 'container.chain'))
+		nodes.append(modules.open_chain(f'sineL_{i}_chain', 'container.chain', folded=1))
 		bang_input = modules.add_bang(f'sineL_{i}_bangInput', 0.1) # connect to parameter "Random Strength"
 		cable = modules.add_cable_expr(f'sineL_{i}_cable', 'Math.random() * input')
 		bang_output = modules.add_bang(f'sineL_{i}_bangOutput', 1.0)

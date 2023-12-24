@@ -47,9 +47,9 @@ def close_cloner(name, num_clones):
 
 def add_clone_sliderpack(name, num_sliders):
 	sliderpack = []
-	sliderpack.append(f'<Node ID="{name}" FactoryPath="container.no_midi" Bypassed="0">')
+	sliderpack.append(f'<Node ID="container_{name}" FactoryPath="container.no_midi" Bypassed="0">')
 	sliderpack.append(f'<Nodes>')
-	sliderpack.append(f'<Node ID="clone_pack" FactoryPath="control.clone_pack" Bypassed="0">')
+	sliderpack.append(f'<Node ID="sliderpack_{name}" FactoryPath="control.clone_pack" Bypassed="0">')
 	sliderpack.append(f'<ModulationTargets>')
 	sliderpack.append(f'</ModulationTargets>')
 	sliderpack.append(f'<ComplexData>')
@@ -328,10 +328,21 @@ def create_parameter(params, name, min_value, max_value, step_size, value):
 			params.insert(idx+3, f'</Connections>')			
 			params.insert(idx+4, f'</Parameter>')
 
-def connect_parameter(params, name, node_id, parameter_id):
-	for idx, line in enumerate(params):
-		if f'<Parameter ID="{name}"' in line:
-			params.insert(idx+2, f'<Connection NodeId="{node_id}" ParameterId="{parameter_id}"/>')
+def connect_parameter(params, name, node_id, parameter_id, check_for_node=False):
+	for i, line in enumerate(params):
+		if isinstance(line, str) and f'<Parameter ID="{name}"' in line:
+			print('boo!')
+			params.insert(i+2, f'<Connection NodeId="{node_id}" ParameterId="{parameter_id}"/>')
+		if isinstance(line, list):
+			for j, nested in enumerate(line):
+				if check_for_node:
+					if f'<Node ID="{name}"' in nested:
+						line.insert(j+2, f'<Connection NodeId="{node_id}" ParameterId="{parameter_id}"/>')
+				else:
+					if f'<Parameter ID="{name}"' in nested:
+						line.insert(j+2, f'<Connection NodeId="{node_id}" ParameterId="{parameter_id}"/>')
+
+
 
 
 #------------------------------------------------------------------------------------

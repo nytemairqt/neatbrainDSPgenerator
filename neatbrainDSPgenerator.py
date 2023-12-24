@@ -10,7 +10,11 @@ file = open(f'{PATH}/neatbrain.xml', 'w')
 
 # TO DO
 
-# setup velocity -> pitchAHDSR attack level or something
+# setup Clone Containers (ew)
+
+# velocity PITCH
+# velocity FILTER
+# velocity AMPLITUDE (maybe)
 # pitch bend (global pitch mod i think)
 
 # Instantiate XML Doc
@@ -20,8 +24,8 @@ NETWORK_PARAMS = []
 NETWORK_END = []
 
 NETWORK_START.append('<?xml version="1.0" encoding="UTF-8"?>')
-NETWORK_START.append('<Network ID="testnew" AllowPolyphonic="1" Version="0.0.0">')
-NETWORK_START.append('<Node FactoryPath="container.chain" ID="testnew" Bypassed="0" ShowParameters="1">')
+NETWORK_START.append(f'<Network ID="{INSTRUMENT_NAME}" AllowPolyphonic="1" Version="0.0.0">')
+NETWORK_START.append(f'<Node FactoryPath="container.chain" ID="{INSTRUMENT_NAME}" Bypassed="0" ShowParameters="1">')
 NETWORK_START.append('<Nodes>')
 NETWORK_START.append('<!-- Begin Node Tree -->')
 
@@ -55,6 +59,7 @@ if __name__=="__main__":
 
 	ahdsr_pitch = modules.add_AHDSR("ahdsrPitch", 5.0, 1.0, PITCH_FALLOFF_DECAY, 0.0, 50) # A AL D S R 
 	ahdsr_filter = modules.add_AHDSR("ahdsrFilter", 5.0, 1.0, FILTER_FALLOFF_DECAY, 0.0, 50) # A AL D S R 
+	ratio_chain = modules.add_ratio_chain("ratioChain")
 
 	nodes = []
 	pmas = []
@@ -62,14 +67,58 @@ if __name__=="__main__":
 	#nodes.append(ahdsr_gain)
 	nodes.append(ahdsr_filter)
 	nodes.append(ahdsr_pitch)
+	nodes.append(ratio_chain)
 
 	if STEREO_INSTRUMENT:
 		nodes.append(modules.open_chain("multiChannel", "container.multi", folded=1))
 
 	# Left Channel
 	nodes.append(modules.open_chain("chainL", "container.chain"))
-	nodes.append(modules.open_chain("sines_splitterL", "container.split"))
 
+	# Cloner Object
+
+	nodes.append(modules.open_cloner('clonerL'))
+
+	# Clone Chain
+
+	for i in range(NUM_MODES):
+		nodes.append([f'<!-- Begin Clone Child -->'])
+		nodes.append([f'<Node ID="clone_child" FactoryPath="container.chain" Bypassed="0">'])
+		nodes.append([f'<Nodes>'])
+		nodes.append(modules.open_chain(f'sineL_chain', 'container.chain', folded=1))
+		bang_input = modules.add_bang(f'sineL_bangInput', 0.1) # connect to parameter "Random Strength"
+		cable = modules.add_cable_expr(f'sineL_cable', 'Math.random() * input')
+		bang_output = modules.add_bang(f'sineL_bangOutput', 1.0)
+		pma_ahdsrStrength = modules.add_pma(f'sineL_pma_ahdsrStrength', 1.0, PITCH_FALLOFF_INTENSITY, 1.0) # Connect Multiply to "Strength" Param, connect Value to AHDSR_Pitch
+		pma_ahdsr = modules.add_pma(f'sineL_pma_ahdsr', 1.0, 1.0, 1.0) # Connect Value to "Modes{i}", connect Add to previous PMA
+		pma_random = modules.add_pma(f'sineL_pma_random', 1.0, 1.0, 0.0)
+		pma_randomGlobal = modules.add_pma(f'sineL_pma_randomGlobal', 1.0, 1.0, 0.0)
+		pma_output = modules.add_pma(f'sineL_pma_output', 1.0, 1.0, 0.0)
+		nodes.append(bang_input)
+		nodes.append(cable)
+		nodes.append(bang_output)
+		nodes.append(pma_ahdsrStrength) 
+		nodes.append(pma_ahdsr) 
+		nodes.append(pma_random)
+		nodes.append(pma_randomGlobal)
+		nodes.append(pma_output)
+		nodes.append(modules.add_sine(f'sineL', 1.0))
+		nodes.append(modules.close_chain(f'sineL_chain'))
+		nodes.append([f'</Nodes>'])
+		nodes.append([f'<Parameters/>'])
+		nodes.append([f'</Node>'])
+		nodes.append([f'<!-- End Clone Child -->'])
+	
+
+	nodes.append(modules.close_cloner("clonerL", NUM_MODES))
+
+
+
+	#nodes.append(modules.open_chain("sines_splitterL", "container.split"))
+
+	'''
+
+	# OLD STATIC METHOD
 	# Build Sine Wave Chains
 	for i in range(NUM_MODES):
 		# Create Modules
@@ -91,7 +140,6 @@ if __name__=="__main__":
 		nodes.append(pma_randomGlobal)
 		nodes.append(pma_output)
 		nodes.append(modules.add_sine(f'sineL_{i}', 1.0 + (1.0*i)))
-		nodes.append(modules.add_gain(f'sineL_{i}_gain', False))
 		nodes.append(modules.close_chain(f'sineL_{i}_chain'))
 		# Connect Modules
 		modules.connect_parameter(NETWORK_PARAMS, 'pitchFalloffIntensity', f'sineL_{i}_pma_ahdsrStrength', 'Multiply')
@@ -103,16 +151,61 @@ if __name__=="__main__":
 		modules.connect_module(pma_ahdsr, '<ModulationTargets>', f'sineL_{i}_pma_random', 'Value')
 		modules.connect_module(pma_random, '<ModulationTargets>', f'sineL_{i}_pma_randomGlobal', 'Value')
 		modules.connect_module(pma_randomGlobal, '<ModulationTargets>', f'sineL_{i}_pma_output', 'Add')
-		modules.connect_module(pma_output, '<ModulationTargets>', f'sineL_{i}', 'Freq Ratio')			
-	nodes.append(modules.close_chain("sines_splitterL"))
+		modules.connect_module(pma_output, '<ModulationTargets>', f'sineL_{i}', 'Freq Ratio')	
+	'''		
+	#nodes.append(modules.close_chain("sines_splitterL"))
 	if STEREO_INSTRUMENT:
 		nodes.append(modules.add_jpanner("jpanLeft", -1.0))
+
 	nodes.append(modules.close_chain("chainL"))
 
 	if STEREO_INSTRUMENT:
 		# Right Channel
 		nodes.append(modules.open_chain("chainR", "container.chain"))
-		nodes.append(modules.open_chain("sines_splitterR", "container.split"))
+
+		# Cloner Object
+
+		nodes.append(modules.open_cloner('clonerR'))
+
+		# Clone Chain 
+
+		
+		for i in range(NUM_MODES):
+			nodes.append([f'<!-- Begin Clone Child -->'])
+			nodes.append([f'<Node ID="clone_child" FactoryPath="container.chain" Bypassed="0">'])
+			nodes.append([f'<Nodes>'])
+			nodes.append(modules.open_chain(f'sineR_chain', 'container.chain', folded=1))
+			bang_input = modules.add_bang(f'sineR_bangInput', 0.1) # connect to parameter "Random Strength"
+			cable = modules.add_cable_expr(f'sineR_cable', 'Math.random() * input')
+			bang_output = modules.add_bang(f'sineR_bangOutput', 1.0)
+			pma_ahdsrStrength = modules.add_pma(f'sineR_pma_ahdsrStrength', 1.0, PITCH_FALLOFF_INTENSITY, 1.0) # Connect Multiply to "Strength" Param, connect Value to AHDSR_Pitch
+			pma_ahdsr = modules.add_pma(f'sineR_pma_ahdsr', 1.0, 1.0, 1.0) # Connect Value to "Modes{i}", connect Add to previous PMA
+			pma_random = modules.add_pma(f'sineR_pma_random', 1.0, 1.0, 0.0)
+			pma_randomGlobal = modules.add_pma(f'sineR_pma_randomGlobal', 1.0, 1.0, 0.0)
+			pma_output = modules.add_pma(f'sineR_pma_output', 1.0, 1.0, 0.0)
+			nodes.append(bang_input)
+			nodes.append(cable)
+			nodes.append(bang_output)
+			nodes.append(pma_ahdsrStrength) 
+			nodes.append(pma_ahdsr) 
+			nodes.append(pma_random)
+			nodes.append(pma_randomGlobal)
+			nodes.append(pma_output)
+			nodes.append(modules.add_sine(f'sineR', 1.0))
+			nodes.append(modules.close_chain(f'sineR_chain'))
+			nodes.append([f'</Nodes>'])
+			nodes.append([f'<Parameters/>'])
+			nodes.append([f'</Node>'])
+			nodes.append([f'<!-- End Clone Child -->'])
+
+		nodes.append(modules.close_cloner("clonerR", NUM_MODES))
+
+		#nodes.append(modules.open_chain("sines_splitterR", "container.split"))
+
+		'''
+	
+
+		# OLD STATIC METHOD
 
 		# Build Sine Wave Chains
 		for i in range(NUM_MODES):
@@ -135,7 +228,6 @@ if __name__=="__main__":
 			nodes.append(pma_randomGlobal)
 			nodes.append(pma_output)
 			nodes.append(modules.add_sine(f'sineR_{i}', 1.0 + (1.0*i)))
-			nodes.append(modules.add_gain(f'sineR_{i}_gain', False))
 			nodes.append(modules.close_chain(f'sineR_{i}_chain'))
 			# Connect Modules
 			modules.connect_parameter(NETWORK_PARAMS, 'pitchFalloffIntensity', f'sineR_{i}_pma_ahdsrStrength', 'Multiply')
@@ -147,14 +239,16 @@ if __name__=="__main__":
 			modules.connect_module(pma_ahdsr, '<ModulationTargets>', f'sineR_{i}_pma_random', 'Value')
 			modules.connect_module(pma_random, '<ModulationTargets>', f'sineR_{i}_pma_randomGlobal', 'Value')
 			modules.connect_module(pma_randomGlobal, '<ModulationTargets>', f'sineR_{i}_pma_output', 'Add')
-			modules.connect_module(pma_output, '<ModulationTargets>', f'sineR_{i}', 'Freq Ratio')			
-		nodes.append(modules.close_chain("sines_splitterR"))
+			modules.connect_module(pma_output, '<ModulationTargets>', f'sineR_{i}', 'Freq Ratio')	
+		'''		
+		#nodes.append(modules.close_chain("sines_splitterR"))
 		nodes.append(modules.add_jpanner("jpanRight", 1.0))
 		nodes.append(modules.close_chain("chainR"))
 		nodes.append(modules.close_chain("multiChannel"))
 
 	# Stiffness
 
+	'''
 	nodes.append(modules.open_chain("tanhSplit", "container.split"))
 	nodes.append(modules.open_chain("tanhOff", "container.chain"))
 	nodes.append(modules.add_gain("tanhDry", invert=True))
@@ -169,23 +263,24 @@ if __name__=="__main__":
 	nodes.append(modules.add_filter('lowPass', 2000))
 	nodes.append(modules.add_filter('ahdsrFilter', 4000))
 	modules.connect_module(ahdsr_filter, '<!-- CV -->', 'ahdsrFilter', 'Frequency')	
+	'''
 
 	# Connect Global Parameters	
-	modules.connect_parameter(NETWORK_PARAMS, 'pitchFalloffDecay', 'ahdsrPitch', 'Decay')
-	modules.connect_parameter(NETWORK_PARAMS, 'filterFalloffDecay', 'ahdsrFilter', 'Decay')
-	modules.connect_parameter(NETWORK_PARAMS, 'stiffness', 'tanhDry', 'Gain')
-	modules.connect_parameter(NETWORK_PARAMS, 'stiffness', 'tanhWet', 'Gain')
-	modules.connect_parameter(NETWORK_PARAMS, 'stiffnessType', 'stiffnessSwitch', 'Type')
-	modules.connect_parameter(NETWORK_PARAMS, 'filterStaticFrequency', 'lowPass', 'Frequency')
+	#modules.connect_parameter(NETWORK_PARAMS, 'pitchFalloffDecay', 'ahdsrPitch', 'Decay')
+	#modules.connect_parameter(NETWORK_PARAMS, 'filterFalloffDecay', 'ahdsrFilter', 'Decay')
+	#modules.connect_parameter(NETWORK_PARAMS, 'stiffness', 'tanhDry', 'Gain')
+	#modules.connect_parameter(NETWORK_PARAMS, 'stiffness', 'tanhWet', 'Gain')
+	#modules.connect_parameter(NETWORK_PARAMS, 'stiffnessType', 'stiffnessSwitch', 'Type')
+	#modules.connect_parameter(NETWORK_PARAMS, 'filterStaticFrequency', 'lowPass', 'Frequency')
 
 	# Connect Bang Inputs to Pitch
 
-	for i in range(NUM_MODES):
-		modules.connect_parameter(NETWORK_PARAMS, 'pitchRandomIntensity', f'sineL_{i}_bangInput', 'Value')
+	#for i in range(NUM_MODES):
+	#	modules.connect_parameter(NETWORK_PARAMS, 'pitchRandomIntensity', f'sineL_{i}_bangInput', 'Value')
 
-	if STEREO_INSTRUMENT:
-		for i in range(NUM_MODES):
-			modules.connect_parameter(NETWORK_PARAMS, 'pitchRandomIntensity', f'sineR_{i}_bangInput', 'Value')
+	#if STEREO_INSTRUMENT:
+	#	for i in range(NUM_MODES):
+	#		modules.connect_parameter(NETWORK_PARAMS, 'pitchRandomIntensity', f'sineR_{i}_bangInput', 'Value')
 
 	# Start Writers
 

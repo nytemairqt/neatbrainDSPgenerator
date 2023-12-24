@@ -1,6 +1,6 @@
 # Globals
 
-NUM_MODES = 5
+NUM_MODES = 2
 STEREO_INSTRUMENT = True
 
 # Pitch
@@ -11,7 +11,9 @@ PITCH_VELOCITY = 1.0
 
 # Filter
 
+FILTER_STATIC_FREQUENCY = 5000
 FILTER_FALLOFF_DECAY = 5000
+
 
 # Ratios
 

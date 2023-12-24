@@ -10,9 +10,7 @@ file = open(f'{PATH}/neatbrain.xml', 'w')
 
 # TO DO
 
-# add pan nodes when stereo x
 # setup velocity -> pitchAHDSR attack level or something
-# add filter cutoff static parameter
 # pitch bend (global pitch mod i think)
 
 # Instantiate XML Doc
@@ -39,11 +37,14 @@ NETWORK_END.append('</Network>')
 # Parameters
 
 modules.create_parameter(NETWORK_PARAMS, 'stiffness', 0.0, 1.0, 0.01, 0.0)
-modules.create_parameter(NETWORK_PARAMS, 'stiffnessType', 0.0, 1.0, 1.0, 0.0) # Connect to Bypasses of Tanh & Abs
+modules.create_parameter(NETWORK_PARAMS, 'stiffnessType', 0.0, 1.0, 1.0, 0.0)
 modules.create_parameter(NETWORK_PARAMS, 'pitchVelocity', 0.0, 1.0, 0.01, 0.0)
 modules.create_parameter(NETWORK_PARAMS, 'pitchFalloffIntensity', 0.0, 1.0, 0.01, PITCH_FALLOFF_INTENSITY)
 modules.create_parameter(NETWORK_PARAMS, 'pitchFalloffDecay', 20, 20000, 1, PITCH_FALLOFF_DECAY)
+modules.create_parameter(NETWORK_PARAMS, 'pitchRandomIntensity', 0.0, 1.0, 0.01, 0.1)
 modules.create_parameter(NETWORK_PARAMS, 'filterFalloffDecay', 20, 20000, 1, FILTER_FALLOFF_DECAY)
+modules.create_parameter(NETWORK_PARAMS, 'filterStaticFrequency', 500, 5000, 1, FILTER_STATIC_FREQUENCY)
+
 
 # Connections
 
@@ -120,8 +121,8 @@ if __name__=="__main__":
 			bang_input = modules.add_bang(f'sineR_{i}_bangInput', 0.1)
 			cable = modules.add_cable_expr(f'sineR_{i}_cable', 'Math.random() * input')
 			bang_output = modules.add_bang(f'sineR_{i}_bangOutput', 1.0)
-			pma_ahdsrStrength = modules.add_pma(f'sineR_{i}_pma_ahdsrStrength', 1.0, PITCH_FALLOFF_INTENSITY, 1.0) # Connect Multiply to "Strength" Param, connect Value to AHDSR_Pitch
-			pma_ahdsr = modules.add_pma(f'sineR_{i}_pma_ahdsr', 1.0, 1.0, 1.0) # Connect Value to "Modes{i}", connect Add to previous PMA
+			pma_ahdsrStrength = modules.add_pma(f'sineR_{i}_pma_ahdsrStrength', 1.0, PITCH_FALLOFF_INTENSITY, 1.0)
+			pma_ahdsr = modules.add_pma(f'sineR_{i}_pma_ahdsr', 1.0, 1.0, 1.0)
 			pma_random = modules.add_pma(f'sineR_{i}_pma_random', 1.0, 1.0, 0.0)
 			pma_randomGlobal = modules.add_pma(f'sineR_{i}_pma_randomGlobal', 1.0, 1.0, 0.0)
 			pma_output = modules.add_pma(f'sineR_{i}_pma_output', RATIOS_R[i], 1.0, 0.0)
@@ -175,6 +176,16 @@ if __name__=="__main__":
 	modules.connect_parameter(NETWORK_PARAMS, 'stiffness', 'tanhDry', 'Gain')
 	modules.connect_parameter(NETWORK_PARAMS, 'stiffness', 'tanhWet', 'Gain')
 	modules.connect_parameter(NETWORK_PARAMS, 'stiffnessType', 'stiffnessSwitch', 'Type')
+	modules.connect_parameter(NETWORK_PARAMS, 'filterStaticFrequency', 'lowPass', 'Frequency')
+
+	# Connect Bang Inputs to Pitch
+
+	for i in range(NUM_MODES):
+		modules.connect_parameter(NETWORK_PARAMS, 'pitchRandomIntensity', f'sineL_{i}_bangInput', 'Value')
+
+	if STEREO_INSTRUMENT:
+		for i in range(NUM_MODES):
+			modules.connect_parameter(NETWORK_PARAMS, 'pitchRandomIntensity', f'sineR_{i}_bangInput', 'Value')
 
 	# Start Writers
 

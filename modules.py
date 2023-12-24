@@ -2,21 +2,24 @@
 # NODES
 #------------------------------------------------------------------------------------
 
-def open_chain(name, chain_type, folded=0, extra_prop=None):
+def open_chain(name, chain_type, folded=0, extra_props=None):
 	chain = []
 	chain.append(f'<!-- Begin Chain {name} -->')
 	chain.append(f'<Node ID="{name}" FactoryPath="{chain_type}" Bypassed="0" Folded="{folded}">') # container.chain, container.split
-	if extra_prop != None:
+	if extra_props != None:
 		chain.append(f'<Properties>')
-		chain.append(extra_prop)
+		for prop in extra_props:
+			chain.append(prop)
 		chain.append(f'</Properties>')
 	chain.append(f'<Nodes>')	
+
 	return chain
 
-def close_chain(name):
+def close_chain(name, extra_params=None):
 	chain = []
 	chain.append(f'</Nodes>')
-	chain.append(f'<Parameters/>')
+	chain.append(f'<Parameters>')
+	chain.append(f'</Parameters>')
 	chain.append(f'</Node>')
 	chain.append(f'<!-- End Chain {name} -->')
 	return chain
@@ -185,6 +188,7 @@ def add_jpanner(name, default_value):
 	jpanner.append(f'</Node>')
 	return jpanner
 
+# this one is gross
 def add_switcher(name):
 	switcher = []
 	switcher.append(f'<!-- Start Switcher -->')

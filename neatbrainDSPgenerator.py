@@ -142,29 +142,47 @@ if __name__=="__main__":
 
 	for i in range(NUM_MODES):
 		nodes.append([f'<!-- Begin Clone Child -->'])
-		#nodes.append([f'<Node ID="clone_child" FactoryPath="container.chain" Bypassed="0">'])
 		nodes.append([f'<Node ID="sineL_{i}_chain" FactoryPath="container.chain" Bypassed="0">'])
 		nodes.append([f'<Nodes>'])
 
-		#nodes.append(modules.open_chain(f'sineR_chain', 'container.chain', folded=1))
-		nodes.append(modules.add_bang(f'sineL_{i}_bangInput', 0.1)) # connect to parameter "Random Strength"
-		nodes.append(modules.add_cable_expr(f'sineL_{i}_cable', 'Math.random() * input'))
-		nodes.append(modules.add_bang(f'sineL_{i}_bangOutput', 1.0))
-		nodes.append(modules.add_pma(f'sineL_{i}_pma_ahdsrStrength', 1.0, PITCH_FALLOFF_INTENSITY, 1.0)) # Connect Multiply to "Strength" Param, connect Value to AHDSR_Pitch
-		nodes.append(modules.add_pma(f'sineL_{i}_pma_ahdsr', 1.0, 1.0, 1.0)) # Connect Value to "Modes{i}", connect Add to previous PMA
-		nodes.append(modules.add_pma(f'sineL_{i}_pma_random', 1.0, 1.0, 0.0))
-		nodes.append(modules.add_pma(f'sineL_{i}_pma_randomGlobal', 1.0, 1.0, 0.0))
-		nodes.append(modules.add_pma(f'sineL_{i}_pma_output', 1.0, 1.0, 0.0))
-		nodes.append(modules.add_sine(f'sineL_{i}', 1.0))
-		#nodes.append(modules.close_chain(f'sineR_chain_{i}'))
+		# Need these declared...
+		bang_input = modules.add_bang(f'sineL_{i}_bangInput', 0.1) # connect to parameter "Random Strength"
+		cable = modules.add_cable_expr(f'sineL_{i}_cable', 'Math.random() * input')
+		bang_output = modules.add_bang(f'sineL_{i}_bangOutput', 1.0)
+		pma_ahdsrStrength = modules.add_pma(f'sineL_{i}_pma_ahdsrStrength', 1.0, PITCH_FALLOFF_INTENSITY, 1.0) # Connect Multiply to "Strength" Param, connect Value to AHDSR_Pitch
+		pma_ahdsr = modules.add_pma(f'sineL_{i}_pma_ahdsr', 1.0, 1.0, 1.0) # Connect Value to "Modes{i}", connect Add to previous PMA
+		pma_random = modules.add_pma(f'sineL_{i}_pma_random', 1.0, 1.0, 0.0)
+		pma_randomGlobal = modules.add_pma(f'sineL_{i}_pma_randomGlobal', 1.0, 1.0, 0.0)
+		pma_output = modules.add_pma(f'sineL_{i}_pma_output', 1.0, 1.0, 0.0)
+		sine = modules.add_sine(f'sineL_{i}', 1.0)
+
+		nodes.append(bang_input)
+		nodes.append(cable)
+		nodes.append(bang_output)
+		nodes.append(pma_ahdsrStrength)
+		nodes.append(pma_ahdsr)
+		nodes.append(pma_random)
+		nodes.append(pma_randomGlobal)
+		nodes.append(pma_output)
+		nodes.append(sine)
 
 		nodes.append([f'</Nodes>'])
 		nodes.append([f'<Parameters/>'])
 		nodes.append([f'</Node>']) # Manually Close
 		nodes.append([f'<!-- End Clone Child -->'])
 
-		# Connect Sliderpacks
+		# Connect Everything
+		modules.connect_parameter(nodes, 'sliderpack_pitchFalloffIntensity', f'sineL_{i}_pma_ahdsrStrength', 'Multiply', check_for_node=True)		
 		modules.connect_parameter(nodes, 'sliderpack_pitchRandomIntensity', f'sineL_{i}_bangInput', 'Value', check_for_node=True)		
+
+		modules.connect_module(cable, '<ModulationTargets>', f'sineL_{i}_bangOutput', 'Value')
+		modules.connect_module(bang_output, '<ModulationTargets>', f'sineL_{i}_pma_random', 'Add')
+		#modules.connect_module(ahdsr_pitch, '<!-- CV -->', f'sineL_{i}_pma_ahdsrStrength', 'Value')
+		#modules.connect_module(pma_ahdsrStrength, '<ModulationTargets>', f'sineL_{i}_pma_ahdsr', 'Add')
+		modules.connect_module(pma_ahdsr, '<ModulationTargets>', f'sineL_{i}_pma_random', 'Value')
+		modules.connect_module(pma_random, '<ModulationTargets>', f'sineL_{i}_pma_randomGlobal', 'Value')
+		modules.connect_module(pma_randomGlobal, '<ModulationTargets>', f'sineL_{i}_pma_output', 'Add')
+		modules.connect_module(pma_output, '<ModulationTargets>', f'sineL_{i}', 'Freq Ratio')
 
 	nodes.append(modules.close_cloner("clonerL", NUM_MODES))
 

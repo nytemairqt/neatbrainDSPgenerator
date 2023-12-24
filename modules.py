@@ -45,50 +45,24 @@ def close_cloner(name, num_clones):
 	cloner.append(f'<!-- End Cloner Object {name} -->')
 	return cloner
 
-def add_ratio_chain(name):
-	ratio_chain = []
-	ratio_chain.append(f'<Node ID="{name}" FactoryPath="container.no_midi" Bypassed="0">')
-	ratio_chain.append(f'<Nodes>')
-	ratio_chain.append(f'<Node ID="chain" FactoryPath="container.chain" Bypassed="0">')
-	ratio_chain.append(f'<Nodes>')
-	ratio_chain.append(f'<Node ID="clone_pack" FactoryPath="control.clone_pack" Bypassed="0">')
-	ratio_chain.append(f'<ModulationTargets>')
-	ratio_chain.append(f'<Connection NodeId="oscillator" ParameterId="Freq Ratio"/>') # need to set this up...
-	ratio_chain.append(f'</ModulationTargets>')
-	ratio_chain.append(f'<ComplexData>')
-	ratio_chain.append(f'<SliderPacks>')
-	ratio_chain.append(f'<SliderPack Index="0" EmbeddedData="20....f+DWOJ7S35QwORgqG+jBWO7C"/>') # need to make this programmatic...
-	ratio_chain.append(f'</SliderPacks>')
-	ratio_chain.append(f'</ComplexData>')
-	ratio_chain.append(f'<Parameters>')
-	ratio_chain.append(f'<Parameter MinValue="1.0" MaxValue="16.0" StepSize="1.0" ID="NumClones"')
-	ratio_chain.append(f'Value="1.0"/>')
-	ratio_chain.append(f'<Parameter MinValue="0.0" MaxValue="1.0" ID="Value" Value="1.0"/>')
-	ratio_chain.append(f'</Parameters>')
-	ratio_chain.append(f'</Node>')
-	ratio_chain.append(f'</Nodes>')
-	ratio_chain.append(f'<Parameters/>')
-	ratio_chain.append(f'</Node>')
-	ratio_chain.append(f'</Nodes>')
-	ratio_chain.append(f'<Parameters/>')
-	ratio_chain.append(f'</Node>')
-	return ratio_chain 
-
-def add_clone_sliderpack(name, num_clones):
+def add_clone_sliderpack(name, num_sliders):
 	sliderpack = []
+	sliderpack.append(f'<Node ID="{name}" FactoryPath="container.no_midi" Bypassed="0">')
+	sliderpack.append(f'<Nodes>')
 	sliderpack.append(f'<Node ID="clone_pack" FactoryPath="control.clone_pack" Bypassed="0">')
 	sliderpack.append(f'<ModulationTargets>')
-	sliderpack.append(f'<Connection NodeId="harmonic" ParameterId="Value"/>')
 	sliderpack.append(f'</ModulationTargets>')
 	sliderpack.append(f'<ComplexData>')
 	sliderpack.append(f'<SliderPacks>')
-	sliderpack.append(f'<SliderPack Index="0" EmbeddedData="4.OJb88."/>') # HERE
 	sliderpack.append(f'</SliderPacks>')
 	sliderpack.append(f'</ComplexData>')
 	sliderpack.append(f'<Parameters>')
-	sliderpack.append(f'<Parameter MinValue="1.0" MaxValue="16.0" StepSize="1.0" ID="NumClones" Value="{num_clones}"/>')
-	sliderpack.append(f'<Parameter MinValue="0.0" MaxValue="1.0" ID="Value" Automated="1"/>')
+	sliderpack.append(f'<Parameter MinValue="1.0" MaxValue="{num_sliders}" StepSize="1.0" ID="NumClones" Value="{num_sliders}"/>')
+	sliderpack.append(f'<Parameter MinValue="0.0" MaxValue="1.0" ID="Value" Value="1.0"/>')
 	sliderpack.append(f'</Parameters>')
+	sliderpack.append(f'</Node>')
+	sliderpack.append(f'</Nodes>')
+	sliderpack.append(f'<Parameters/>')
 	sliderpack.append(f'</Node>')
 	return sliderpack 
 
@@ -113,7 +87,7 @@ def add_sine(name, freq_ratio):
 	sine.append(f'<!-- End Oscillator -->')
 	return sine
 
-def add_AHDSR(name, attack, attack_level, decay, sustain, release, folded=1):
+def add_AHDSR(name, attack, attack_level, decay, sustain, release, folded=0):
 	ahdsr = []
 	ahdsr.append(f'<!-- AHDSR {name} -->')
 	ahdsr.append(f'<Node ID="{name}" FactoryPath="envelope.ahdsr" Bypassed="0" Folded="{folded}">')

@@ -57,17 +57,22 @@ if __name__=="__main__":
 
 	# Instantiate Nodes
 
+	nodes = []
+
 	ahdsr_pitch = modules.add_AHDSR("ahdsrPitch", 5.0, 1.0, PITCH_FALLOFF_DECAY, 0.0, 50) # A AL D S R 
 	ahdsr_filter = modules.add_AHDSR("ahdsrFilter", 5.0, 1.0, FILTER_FALLOFF_DECAY, 0.0, 50) # A AL D S R 
-	ratio_chain = modules.add_ratio_chain("ratioChain")
-
-	nodes = []
-	pmas = []
+	sliderpack_ratiosL = modules.add_clone_sliderpack("sliderpack_ratiosL", NUM_MODES)
+	sliderpack_ratiosR = modules.add_clone_sliderpack("sliderpack_ratiosR", NUM_MODES)
 
 	#nodes.append(ahdsr_gain)
+	nodes.append(modules.open_chain('ahdsrs', 'container.split', folded=1))
 	nodes.append(ahdsr_filter)
 	nodes.append(ahdsr_pitch)
-	nodes.append(ratio_chain)
+	nodes.append(modules.close_chain('ahdsrs'))
+	nodes.append(modules.open_chain('ratioChains', 'container.split'))
+	nodes.append(sliderpack_ratiosL)
+	nodes.append(sliderpack_ratiosR)
+	nodes.append(modules.close_chain('ratioChains'))
 
 	if STEREO_INSTRUMENT:
 		nodes.append(modules.open_chain("multiChannel", "container.multi", folded=1))
@@ -265,6 +270,12 @@ if __name__=="__main__":
 	modules.connect_module(ahdsr_filter, '<!-- CV -->', 'ahdsrFilter', 'Frequency')	
 	'''
 
+	# Connect Sine Waves
+
+	modules.connect_module(sliderpack_ratiosL, '<ModulationTargets>', 'sineL_pma_output', 'Value')
+	modules.connect_module(sliderpack_ratiosR, '<ModulationTargets>', 'sineR_pma_output', 'Value')
+	#modules.connect_parameter(NETWORK_PARAMS, '<ModulationTargets>', )
+
 	# Connect Global Parameters	
 	#modules.connect_parameter(NETWORK_PARAMS, 'pitchFalloffDecay', 'ahdsrPitch', 'Decay')
 	#modules.connect_parameter(NETWORK_PARAMS, 'filterFalloffDecay', 'ahdsrFilter', 'Decay')
@@ -272,6 +283,7 @@ if __name__=="__main__":
 	#modules.connect_parameter(NETWORK_PARAMS, 'stiffness', 'tanhWet', 'Gain')
 	#modules.connect_parameter(NETWORK_PARAMS, 'stiffnessType', 'stiffnessSwitch', 'Type')
 	#modules.connect_parameter(NETWORK_PARAMS, 'filterStaticFrequency', 'lowPass', 'Frequency')
+
 
 	# Connect Bang Inputs to Pitch
 

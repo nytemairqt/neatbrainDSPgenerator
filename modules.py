@@ -108,7 +108,7 @@ def add_sine(name, freq_ratio):
 	sine.append(f'<!-- End Oscillator -->')
 	return sine
 
-def add_AHDSR(name, attack, attack_level, decay, sustain, release, folded=0):
+def add_AHDSR(name, attack, attack_level, decay, sustain, release, folded=0, skew=1.0, a_max=10000, d_max=40000, r_max=40000):
 	ahdsr = []
 	ahdsr.append(f'<!-- AHDSR {name} -->')
 	ahdsr.append(f'<Node ID="{name}" FactoryPath="envelope.ahdsr" Bypassed="0" Folded="{folded}">')
@@ -131,12 +131,12 @@ def add_AHDSR(name, attack, attack_level, decay, sustain, release, folded=0):
 	ahdsr.append(f'</DisplayBuffers>')
 	ahdsr.append(f'</ComplexData>')
 	ahdsr.append(f'<Parameters>')
-	ahdsr.append(f'<Parameter MinValue="0.0" MaxValue="10000.0" StepSize="0.1000000014901161" SkewFactor="0.1976716816425323" ID="Attack" Value="{attack}"/>')
+	ahdsr.append(f'<Parameter MinValue="0.0" MaxValue="{a_max}" StepSize="0.1000000014901161" SkewFactor="{skew}" ID="Attack" Value="{attack}"/>')
 	ahdsr.append(f'<Parameter MinValue="0.0" MaxValue="1.0" ID="AttackLevel" Value="{attack_level}"/>')
-	ahdsr.append(f'<Parameter MinValue="0.0" MaxValue="10000.0" StepSize="0.1000000014901161" SkewFactor="0.1976716816425323" ID="Hold" Value="20.0"/>')
-	ahdsr.append(f'<Parameter MinValue="0.0" MaxValue="40000.0" StepSize="0.1000000014901161" SkewFactor="0.1976716816425323" ID="Decay" Value="{decay}"/>')
+	ahdsr.append(f'<Parameter MinValue="0.0" MaxValue="10000.0" StepSize="0.1000000014901161" SkewFactor="{skew}" ID="Hold" Value="20.0"/>')
+	ahdsr.append(f'<Parameter MinValue="0.0" MaxValue="{d_max}" StepSize="0.1000000014901161" SkewFactor="{skew}" ID="Decay" Value="{decay}"/>')
 	ahdsr.append(f'<Parameter MinValue="0.0" MaxValue="1.0" ID="Sustain" Value="{sustain}"/>')
-	ahdsr.append(f'<Parameter MinValue="0.0" MaxValue="30000.0" StepSize="0.1000000014901161" SkewFactor="0.1976716816425323" ID="Release" Value="{release}"/>')
+	ahdsr.append(f'<Parameter MinValue="0.0" MaxValue="{r_max}" StepSize="0.1000000014901161" SkewFactor="{skew}" ID="Release" Value="{release}"/>')
 	ahdsr.append(f'<Parameter MinValue="0.0" MaxValue="1.0" ID="AttackCurve" Value="0.5"/>')
 	ahdsr.append(f'<Parameter MinValue="0.0" MaxValue="1.0" StepSize="1.0" ID="Retrigger" Value="0.0"/>')
 	ahdsr.append(f'<Parameter MinValue="0.0" MaxValue="1.0" StepSize="1.0" ID="Gate" Value="0.0"/>')

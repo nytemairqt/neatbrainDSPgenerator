@@ -68,9 +68,9 @@ parameters = {
 	'stiffnessType' : [0.0, 1.0, 1.0, 0.0],
 	'pitchVelocity' : [0.0, 1.0, 0.01, 0.0],
 	'pitchFalloffIntensity' : [0.0, 1.0, 0.01, PITCH_FALLOFF_INTENSITY],
-	'pitchFalloffDecay' : [20, 20000, 1, PITCH_FALLOFF_DECAY],
+	'pitchFalloffDecay' : [0, 40000, 1, PITCH_FALLOFF_DECAY],
 	'pitchRandomIntensity' : [0.0, 1.0, 0.01, 0.1],
-	'filterFalloffDecay' : [20, 20000, 1, FILTER_FALLOFF_DECAY],
+	'filterFalloffDecay' : [0, 40000, 1, FILTER_FALLOFF_DECAY],
 	'filterStaticFrequency' : [500, 5000, 1, FILTER_STATIC_FREQUENCY]
 }
 
@@ -405,8 +405,9 @@ if __name__=="__main__":
 	#modules.connect_parameter(NETWORK_PARAMS, '<ModulationTargets>', )
 
 	# Connect Global Parameters		
-	#modules.connect_parameter(NETWORK_PARAMS, 'pitchFalloffIntensity', 'sliderpack_pitchFalloffIntensity', 'Value')
-	#modules.connect_parameter(NETWORK_PARAMS, 'pitchFalloffDecay', 'ahdsrPitch', 'Decay')
+	modules.connect_parameter(NETWORK_PARAMS, 'pitchFalloffIntensity', 'cable_pitchFalloffIntensity', 'Value')
+	modules.connect_parameter(NETWORK_PARAMS, 'pitchFalloffDecay', 'cable_pitchFalloffDecay', 'Value')
+	modules.connect_parameter(NETWORK_PARAMS, 'pitchRandomIntensity', 'cable_pitchRandomIntensity', 'Value')
 	#modules.connect_parameter(NETWORK_PARAMS, 'filterFalloffDecay', 'ahdsrFilter', 'Decay')
 	#modules.connect_parameter(NETWORK_PARAMS, 'stiffness', 'tanhDry', 'Gain')
 	#modules.connect_parameter(NETWORK_PARAMS, 'stiffness', 'tanhWet', 'Gain')

@@ -10,16 +10,35 @@ file = open(f'{PATH}/NEATBrain_Achromic.xml', 'w')
 
 # TO DO
 
-# connect sliderpack(s) to pmas
-# create a single clone pack for each param
-	# connect pmas to pack values
-# reconnect modulators
+# Scale ratios to be between 0 & 1 (divide by 100)
+# Then scale output of sliderpack back to the raw ratio value
+# take Value of Sliderpack and make it 100
 
+# random global: bang -> cable.expr -> bang out -> pma_global_random(add) using Fixed cable
+# random global strength = Fixed Cable value 
+# this way we don't need any external modulators
+
+# finish connecting stuff
+# get ahdsrs working with Converters (i think...)
+# get filters working with Converters (XD)
+# IMPORTANT: uncomment out filters, tanh etc etc
+# for static parameters, just change the Value of the sliderpack (and make sure sliders are 1.0!)
+# set Random to go between -1 and 1
+
+# by exposing the sliderpacks to the end user, we could create presets that sound like different instruments...
+# just save the ratios as a json object or array 
 # velocity PITCH
 # velocity FILTER
 # velocity AMPLITUDE (maybe)
 # pitch bend (global pitch mod i think)
 
+# normalize = (x[i] - min(x)) / (max(x) - min(x))
+# denorm = z[i] * (max(x) - min(x)) + min(x)
+# normalize values first
+# in scriptnode, plug the sliderpack into a chain
+# using Mul, Sub, Div and Add nodes
+# plug min(x) and max(x) into network as parameters and those control the operators
+# not too bad
 
 # Instantiate XML Doc
 
@@ -67,7 +86,7 @@ if __name__=="__main__":
 
 	nodes = []
 
-	ahdsr_pitch = modules.add_AHDSR("ahdsrPitch", 5.0, 1.0, PITCH_FALLOFF_DECAY, 0.0, 50) # A AL D S R 
+	#ahdsr_pitch = modules.add_AHDSR("ahdsrPitch", 5.0, 1.0, PITCH_FALLOFF_DECAY, 0.0, 50) # A AL D S R 
 	ahdsr_filter = modules.add_AHDSR("ahdsrFilter", 5.0, 1.0, FILTER_FALLOFF_DECAY, 0.0, 50) # A AL D S R 
 	sliderpack_ratiosL = modules.add_clone_sliderpack("ratiosL", NUM_MODES)
 	sliderpack_ratiosR = modules.add_clone_sliderpack("ratiosR", NUM_MODES)
@@ -79,7 +98,7 @@ if __name__=="__main__":
 	#nodes.append(ahdsr_gain)
 	nodes.append(modules.open_chain('ahdsrs', 'container.split', folded=1))
 	nodes.append(ahdsr_filter)
-	nodes.append(ahdsr_pitch)
+	#nodes.append(ahdsr_pitch)
 	nodes.append(modules.close_chain('ahdsrs'))
 	nodes.append(modules.open_chain('ratioChains', 'container.split'))
 	nodes.append(sliderpack_ratiosL)
@@ -87,17 +106,31 @@ if __name__=="__main__":
 	nodes.append(modules.close_chain('ratioChains'))
 
 	# Parameter Nodes for Clones
-	
+
 	nodes.append(modules.open_chain('parameterSliders', 'container.split', folded=0))
-	for param in parameters:
-		sliderpack = modules.add_clone_sliderpack(f'{param}', NUM_MODES)
-		nodes.append(sliderpack)
+
+	cable_pitchFalloffIntensity = modules.add_clone_cable(f'pitchFalloffIntensity', NUM_MODES, mode="Fixed")		
+	cable_pitchFalloffDecay = modules.add_clone_cable(f'pitchFalloffDecay', NUM_MODES, mode="Fixed")	
+	cable_pitchRandomIntensity = modules.add_clone_cable(f'pitchRandomIntensity', NUM_MODES, mode="Fixed")	
+
+	nodes.append(cable_pitchFalloffIntensity)
+	nodes.append(cable_pitchFalloffDecay)
+	nodes.append(cable_pitchRandomIntensity)
+	
+	#nodes.append(modules.add_clone_cable(f'pitchFalloffIntensity', NUM_MODES, mode="Fixed"))
+	#nodes.append(modules.add_clone_cable(f'pitchFalloffDecay', NUM_MODES, mode="Fixed"))
+	#nodes.append(modules.add_clone_cable(f'pitchRandomIntensity', NUM_MODES, mode="Fixed"))
+	#add_clone_cable(name, num_clones, mode="Fixed")
+	#nodes.append(modules.add_clone_sliderpack(f'ahdsrPitch', NUM_MODES))
+	#nodes.append(modules.add_clone_sliderpack(f'pitchFalloffIntensity', NUM_MODES))
+	#nodes.append(modules.add_clone_sliderpack(f'pitchFalloffDecay', NUM_MODES))
+	#nodes.append(modules.add_clone_sliderpack(f'pitchRandomIntensity', NUM_MODES))
 	nodes.append(modules.close_chain('parameterSliders'))
 
 	# Begin Oscillators
 
 	if STEREO_INSTRUMENT:
-		nodes.append(modules.open_chain("multiChannel", "container.multi", folded=1))
+		nodes.append(modules.open_chain("multiChannel", "container.multi", folded=0))
 
 	# Left Channel
 	nodes.append(modules.open_chain("chainL", "container.chain"))
@@ -146,23 +179,28 @@ if __name__=="__main__":
 		nodes.append([f'<Nodes>'])
 
 		# Need these declared...
+		ahdsr_pitch = modules.add_AHDSR(f"sineL_{i}_ahdsrPitch", 5.0, 1.0, PITCH_FALLOFF_DECAY, 0.0, 50) # A AL D S R 
 		bang_input = modules.add_bang(f'sineL_{i}_bangInput', 0.1) # connect to parameter "Random Strength"
 		cable = modules.add_cable_expr(f'sineL_{i}_cable', 'Math.random() * input')
 		bang_output = modules.add_bang(f'sineL_{i}_bangOutput', 1.0)
-		pma_ahdsrStrength = modules.add_pma(f'sineL_{i}_pma_ahdsrStrength', 1.0, PITCH_FALLOFF_INTENSITY, 1.0) # Connect Multiply to "Strength" Param, connect Value to AHDSR_Pitch
-		pma_ahdsr = modules.add_pma(f'sineL_{i}_pma_ahdsr', 1.0, 1.0, 1.0) # Connect Value to "Modes{i}", connect Add to previous PMA
-		pma_random = modules.add_pma(f'sineL_{i}_pma_random', 1.0, 1.0, 0.0)
-		pma_randomGlobal = modules.add_pma(f'sineL_{i}_pma_randomGlobal', 1.0, 1.0, 0.0)
+		#pma_ahdsrStrength = modules.add_pma(f'sineL_{i}_pma_ahdsrStrength', 1.0, 1.0, 0.0) # Connect Multiply to "Strength" Param, connect Value to AHDSR_Pitch
+		#pma_ahdsr = modules.add_pma(f'sineL_{i}_pma_ahdsr', 1.0, 1.0, 0.0) # Connect Value to "Modes{i}", connect Add to previous PMA
+		#pma_ahdsr = modules.add_pma(f'sineL_{i}_pma_ahdsr', 1.0, 1.0, 0.0, scaled=True, value_max=1.0, multiply_max=1.0, add_max=1.0)
+		pma_random = modules.add_pma(f'sineL_{i}_pma_random', 1.0, 1.0, 0.0, value_max=1.0, multiply_max=1.0, add_max=1.0)
+		pma_randomGlobal = modules.add_pma(f'sineL_{i}_pma_randomGlobal', 1.0, 1.0, 0.0, value_max=1.0, multiply_max=1.0, add_max=1.0)
+		pma_ratio_scalar = modules.add_pma(f'sineL_{i}_pma_ratioScalar', 1.0, 1.0, 0.0, scaled=True)
 		pma_output = modules.add_pma(f'sineL_{i}_pma_output', 1.0, 1.0, 0.0)
 		sine = modules.add_sine(f'sineL_{i}', 1.0)
 
+		nodes.append(ahdsr_pitch)
 		nodes.append(bang_input)
 		nodes.append(cable)
 		nodes.append(bang_output)
-		nodes.append(pma_ahdsrStrength)
-		nodes.append(pma_ahdsr)
+		#nodes.append(pma_ahdsrStrength)
+		#nodes.append(pma_ahdsr)
 		nodes.append(pma_random)
 		nodes.append(pma_randomGlobal)
+		nodes.append(pma_ratio_scalar)
 		nodes.append(pma_output)
 		nodes.append(sine)
 
@@ -172,17 +210,40 @@ if __name__=="__main__":
 		nodes.append([f'<!-- End Clone Child -->'])
 
 		# Connect Everything
-		modules.connect_parameter(nodes, 'sliderpack_pitchFalloffIntensity', f'sineL_{i}_pma_ahdsrStrength', 'Multiply', check_for_node=True)		
-		modules.connect_parameter(nodes, 'sliderpack_pitchRandomIntensity', f'sineL_{i}_bangInput', 'Value', check_for_node=True)		
 
+		
+		modules.connect_module(pma_ratio_scalar, '<ModulationTargets>', f'sineL_{i}_pma_output', 'Value')
+
+		# AHDSR
+		#modules.connect_parameter(nodes, 'sliderpack_pitchFalloffIntensity', f'sineL_{i}_ahdsrPitch', 'AttackLevel', check_for_node=True)		
+		#modules.connect_parameter(nodes, 'sliderpack_pitchFalloffDecay', f'sineL_{i}_ahdsrPitch', 'Decay', check_for_node=True)		
+		#modules.connect_parameter(nodes, 'cable_pitchFalloffIntensity', f'sineL_{i}_ahdsrPitch', 'AttackLevel', check_for_node=True)		
+
+		# ============================
+		# ONLY CONNECT THE FIRST CLONE
+		# ============================
+		if i == 0:
+			#modules.connect_module(sliderpack_ratiosL, '<ModulationTargets>', f'sineL_{i}_pma_ratioScalar', 'Value')
+			modules.connect_module(cable_pitchFalloffIntensity, '<ModulationTargets>', f'sineL_{i}_ahdsrPitch', 'AttackLevel')	
+			modules.connect_module(cable_pitchFalloffDecay, '<ModulationTargets>', f'sineL_{i}_ahdsrPitch', 'Decay')
+			modules.connect_module(cable_pitchRandomIntensity, '<ModulationTargets>', f'sineL_{i}_bangInput', 'Value')
+		modules.connect_module(ahdsr_pitch, '<!-- CV -->', f'sineL_{i}_pma_random', 'Value')
+		#modules.connect_module(ahdsr_pitch, '<!-- CV -->', 'sliderpack_ahdsrPitch', 'Value')	
+		#modules.connect_parameter(nodes, 'sliderpack_ahdsrPitch', f'sineL_{i}_pma_ahdsr', 'Value', check_for_node=True)		
+		#modules.connect_parameter(nodes, 'sliderpack_pitchFalloffIntensity', f'sineL_{i}_pma_ahdsr', 'Multiply', check_for_node=True)		
+		
+		#modules.connect_module(pma_ahdsrStrength, '<ModulationTargets>', f'sineL_{i}_pma_ahdsr', 'Value')
+
+		# Random Single
+		#modules.connect_parameter(nodes, 'sliderpack_pitchRandomIntensity', f'sineL_{i}_bangInput', 'Value', check_for_node=True)				
+		modules.connect_module(bang_input, '<ModulationTargets>', f'sineL_{i}_cable', 'Value')
 		modules.connect_module(cable, '<ModulationTargets>', f'sineL_{i}_bangOutput', 'Value')
-		modules.connect_module(bang_output, '<ModulationTargets>', f'sineL_{i}_pma_random', 'Add')
-		#modules.connect_module(ahdsr_pitch, '<!-- CV -->', f'sineL_{i}_pma_ahdsrStrength', 'Value')
-		#modules.connect_module(pma_ahdsrStrength, '<ModulationTargets>', f'sineL_{i}_pma_ahdsr', 'Add')
-		modules.connect_module(pma_ahdsr, '<ModulationTargets>', f'sineL_{i}_pma_random', 'Value')
-		modules.connect_module(pma_random, '<ModulationTargets>', f'sineL_{i}_pma_randomGlobal', 'Value')
+		modules.connect_module(bang_output, '<ModulationTargets>', f'sineL_{i}_pma_random', 'Add')							
+		modules.connect_module(pma_random, '<ModulationTargets>', f'sineL_{i}_pma_randomGlobal', 'Value')		
 		modules.connect_module(pma_randomGlobal, '<ModulationTargets>', f'sineL_{i}_pma_output', 'Add')
 		modules.connect_module(pma_output, '<ModulationTargets>', f'sineL_{i}', 'Freq Ratio')
+
+		#modules.connect_module(ahdsr_pitch, '<!-- CV -->', f'sineL_{i}_pma_ahdsrStrength', 'Value') # connect to ahdsr
 
 	nodes.append(modules.close_cloner("clonerL", NUM_MODES))
 
@@ -343,7 +404,8 @@ if __name__=="__main__":
 	#modules.connect_module(sliderpack_ratiosR, '<ModulationTargets>', 'sineR_pma_output', 'Value')
 	#modules.connect_parameter(NETWORK_PARAMS, '<ModulationTargets>', )
 
-	# Connect Global Parameters	
+	# Connect Global Parameters		
+	#modules.connect_parameter(NETWORK_PARAMS, 'pitchFalloffIntensity', 'sliderpack_pitchFalloffIntensity', 'Value')
 	#modules.connect_parameter(NETWORK_PARAMS, 'pitchFalloffDecay', 'ahdsrPitch', 'Decay')
 	#modules.connect_parameter(NETWORK_PARAMS, 'filterFalloffDecay', 'ahdsrFilter', 'Decay')
 	#modules.connect_parameter(NETWORK_PARAMS, 'stiffness', 'tanhDry', 'Gain')

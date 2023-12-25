@@ -66,6 +66,27 @@ def add_clone_sliderpack(name, num_sliders):
 	sliderpack.append(f'</Node>')
 	return sliderpack 
 
+def add_clone_cable(name, num_clones, value=1.0, mode="Fixed"):
+	cable = []
+	cable.append(f'<Node ID="container_{name}" FactoryPath="container.no_midi" Bypassed="0">')
+	cable.append(f'<Nodes>')
+	cable.append(f'<Node ID="cable_{name}" FactoryPath="control.clone_cable" Bypassed="0">')
+	cable.append(f'<Properties>')
+	cable.append(f'<Property ID="Mode" Value="{mode}"/>')
+	cable.append(f'</Properties>')
+	cable.append(f'<Parameters>')
+	cable.append(f'<Parameter MinValue="1.0" MaxValue="40.0" StepSize="1.0" ID="NumClones" Value="{num_clones}"/>')
+	cable.append(f'<Parameter MinValue="0.0" MaxValue="1.0" ID="Value" Value="{value}"/>')
+	cable.append(f'<Parameter MinValue="0.0" MaxValue="1.0" ID="Gamma" Value="0.0"/>')
+	cable.append(f'</Parameters>')
+	cable.append(f'<ModulationTargets>')
+	cable.append(f'</ModulationTargets>')
+	cable.append(f'</Node>')
+	cable.append(f'</Nodes>')
+	cable.append(f'<Parameters/>')
+	cable.append(f'</Node>')
+	return cable 
+
 def add_sine(name, freq_ratio):
 	sine = []
 	sine.append(f'<!-- Oscillator {name} -->')
@@ -181,15 +202,18 @@ def add_voice_manager(name):
 	voice_manager.append(f'</Node>')
 	return voice_manager
 
-def add_pma(name, value, multiply, add):
+def add_pma(name, value, multiply, add, scaled=False, value_max=100.0, multiply_max=100.0, add_max=100.0):
 	pma = []
-	pma.append(f'<Node ID="{name}" FactoryPath="control.pma_unscaled" Bypassed="0">')
+	if scaled:
+		pma.append(f'<Node ID="{name}" FactoryPath="control.pma" Bypassed="0">')
+	else:
+		pma.append(f'<Node ID="{name}" FactoryPath="control.pma_unscaled" Bypassed="0">')
 	pma.append(f'<ModulationTargets>')
 	pma.append(f'</ModulationTargets>')
 	pma.append(f'<Parameters>')
-	pma.append(f'<Parameter MinValue="0.0" MaxValue="64.0" ID="Value" Value="{value}" StepSize="0.01"/>')
-	pma.append(f'<Parameter MinValue="0.0" MaxValue="1.0" ID="Multiply" Value="{multiply}"/>')
-	pma.append(f'<Parameter MinValue="0.0" MaxValue="1.0" ID="Add" Value="{add}"/>')
+	pma.append(f'<Parameter MinValue="0.0" MaxValue="{value_max}" ID="Value" Value="{value}" StepSize="0.01"/>')
+	pma.append(f'<Parameter MinValue="0.0" MaxValue="{multiply_max}" ID="Multiply" Value="{multiply}"/>')
+	pma.append(f'<Parameter MinValue="0.0" MaxValue="{add_max}" ID="Add" Value="{add}"/>')
 	pma.append(f'</Parameters>')
 	pma.append(f'</Node>')
 	return pma
@@ -331,7 +355,6 @@ def create_parameter(params, name, min_value, max_value, step_size, value):
 def connect_parameter(params, name, node_id, parameter_id, check_for_node=False):
 	for i, line in enumerate(params):
 		if isinstance(line, str) and f'<Parameter ID="{name}"' in line:
-			print('boo!')
 			params.insert(i+2, f'<Connection NodeId="{node_id}" ParameterId="{parameter_id}"/>')
 		if isinstance(line, list):
 			for j, nested in enumerate(line):

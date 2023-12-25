@@ -2,7 +2,7 @@
 
 INSTRUMENT_NAME = "NEATBrain_Achromic"
 NUM_MODES = 2
-STEREO_INSTRUMENT = True
+STEREO_INSTRUMENT = False
 
 # Pitch
 

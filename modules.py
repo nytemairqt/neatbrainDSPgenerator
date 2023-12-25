@@ -66,10 +66,11 @@ def add_clone_sliderpack(name, num_sliders):
 	sliderpack.append(f'</Node>')
 	return sliderpack 
 
-def add_clone_cable(name, num_clones, value=1.0, mode="Fixed"):
+def add_clone_cable(name, num_clones, value=1.0, mode="Fixed", use_container=True):
 	cable = []
-	cable.append(f'<Node ID="container_{name}" FactoryPath="container.no_midi" Bypassed="0">')
-	cable.append(f'<Nodes>')
+	if (use_container):
+		cable.append(f'<Node ID="container_{name}" FactoryPath="container.no_midi" Bypassed="0">')
+		cable.append(f'<Nodes>')
 	cable.append(f'<Node ID="cable_{name}" FactoryPath="control.clone_cable" Bypassed="0">')
 	cable.append(f'<Properties>')
 	cable.append(f'<Property ID="Mode" Value="{mode}"/>')
@@ -82,9 +83,10 @@ def add_clone_cable(name, num_clones, value=1.0, mode="Fixed"):
 	cable.append(f'<ModulationTargets>')
 	cable.append(f'</ModulationTargets>')
 	cable.append(f'</Node>')
-	cable.append(f'</Nodes>')
-	cable.append(f'<Parameters/>')
-	cable.append(f'</Node>')
+	if use_container:
+		cable.append(f'</Nodes>')
+		cable.append(f'<Parameters/>')
+		cable.append(f'</Node>')
 	return cable 
 
 def add_sine(name, freq_ratio):
@@ -180,19 +182,6 @@ def add_gain(name, invert=False):
 	gain.append(f'</Node>')
 	return gain
 
-def add_expr(name, code):
-	expr = []
-	expr.append(f'<Node ID="{name}" FactoryPath="math.expr" Bypassed="0">')
-	expr.append(f'<Properties>')
-	expr.append(f'<Property ID="Code" Value="{code}"/>')
-	expr.append(f'<Property ID="Debug" Value="0"/>')
-	expr.append(f'</Properties>')
-	expr.append(f'<Parameters>')
-	expr.append(f'<Parameter MinValue="0.0" MaxValue="1.0" ID="Value" Value="1.0"/>')
-	expr.append(f'</Parameters>')
-	expr.append(f'</Node>')
-	return expr
-
 def add_voice_manager(name):
 	voice_manager = []
 	voice_manager.append(f'<Node ID="{name}" FactoryPath="envelope.voice_manager" Bypassed="0">')
@@ -218,20 +207,20 @@ def add_pma(name, value, multiply, add, scaled=False, value_max=100.0, multiply_
 	pma.append(f'</Node>')
 	return pma
 
-def add_cable_expr(name, code):
-	expr = []
-	expr.append(f'<Node ID="{name}" FactoryPath="control.cable_expr" Bypassed="0">')
-	expr.append(f'<Properties>')
-	expr.append(f'<Property ID="Code" Value="{code}"/>')
-	expr.append(f'<Property ID="Debug" Value="0"/>')
-	expr.append(f'</Properties>')
-	expr.append(f'<ModulationTargets>')
-	expr.append(f'</ModulationTargets>')
-	expr.append(f'<Parameters>')
-	expr.append(f'<Parameter MinValue="0.0" MaxValue="1.0" ID="Value" Value="1.0"/>')
-	expr.append(f'</Parameters>')
-	expr.append(f'</Node>')
-	return expr
+def add_pitch_mod(name, index=-1):
+	mod = []
+	mod.append(f'<Node ID="pitch_mod" FactoryPath="core.pitch_mod" Bypassed="0">')
+	mod.append(f'<ModulationTargets>')
+	mod.append(f'<Connection NodeId="clone_cable" ParameterId="Value"/>')
+	mod.append(f'</ModulationTargets>')
+	mod.append(f'<ComplexData>')
+	mod.append(f'<DisplayBuffers>')
+	mod.append(f'<DisplayBuffer Index="{index}"/>')
+	mod.append(f'</DisplayBuffers>')
+	mod.append(f'</ComplexData>')
+	mod.append(f'<Parameters/>')
+	mod.append(f'</Node>')
+	return mod
 
 def add_bang(name, default_value):
 	bang = []

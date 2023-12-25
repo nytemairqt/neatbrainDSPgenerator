@@ -65,8 +65,6 @@ NETWORK_END.append('</Network>')
 
 # Min/Max Values for Normalizing
 
-denorm_ratios = [min(RATIOS_L), max(RATIOS_L), min(RATIOS_R), max(RATIOS_R)]
-
 denorm_ratios = {
 	'min_ratio_L' : min(RATIOS_L),
 	'max_ratio_L' : max(RATIOS_L),
@@ -229,6 +227,14 @@ if __name__=="__main__":
 		pma_random = modules.add_pma(f'sineL_{i}_pma_random', 1.0, 1.0, 0.0, value_max=1.0, multiply_max=1.0, add_max=1.0)
 		pma_randomGlobal = modules.add_pma(f'sineL_{i}_pma_randomGlobal', 1.0, 1.0, 0.0, value_max=1.0, multiply_max=1.0, add_max=1.0)
 		denormalizer_open = modules.open_chain(f'sineL_{i}_denormalizer', 'container.chain', folded=0)
+
+		# USE CONTROL.MINMAX YOU CLOWN
+		# create sliderpack, give it the ratios for values
+		# connect sliderpack to this
+		minmax = modules.add_minmax(f'sineL_{i}_minmax', denorm_ratios["min_ratio_L"], denorm_ratios["max_ratio_L"])
+		# connect minmax to base pitch (pma output:value i think)
+
+
 		# sliderpackvalue * (max(x) - min(x)) + min(x)
 		# cable.expr -> 1-value min(x):value || INVERTED MIN
 		# pma -> max(x):value, 1-min(x):add || max(x) - min(x) (invert MIN to use PMA)
@@ -247,7 +253,7 @@ if __name__=="__main__":
 		nodes.append(pma_randomGlobal)
 		nodes.append(pma_ratio_scalar)
 		nodes.append(denormalizer_open)
-		# put stuff here
+		nodes.append(minmax)
 		nodes.append(denormalizer_close)
 		nodes.append(pma_output)
 		nodes.append(sine)
@@ -260,7 +266,7 @@ if __name__=="__main__":
 		# Connect Everything
 
 		
-		modules.connect_module(pma_ratio_scalar, '<ModulationTargets>', f'sineL_{i}_pma_output', 'Value')
+		#modules.connect_module(pma_ratio_scalar, '<ModulationTargets>', f'sineL_{i}_pma_output', 'Value')
 
 		# AHDSR
 		#modules.connect_parameter(nodes, 'sliderpack_pitchFalloffIntensity', f'sineL_{i}_ahdsrPitch', 'AttackLevel', check_for_node=True)		
@@ -290,6 +296,7 @@ if __name__=="__main__":
 		#modules.connect_module(cable, '<ModulationTargets>', f'sineL_{i}_bangOutput', 'Value')
 		#modules.connect_module(cable_randomSingle, '<ModulationTargets>', f'sineL_{i}_pma_random', 'Add')	
 		
+		modules.connect_module(minmax, '<ModulationTargets>', f'sineL_{i}_pma_output', 'Value')
 		modules.connect_module(pma_random, '<ModulationTargets>', f'sineL_{i}_pma_randomGlobal', 'Value')		
 		modules.connect_module(pma_randomGlobal, '<ModulationTargets>', f'sineL_{i}_pma_output', 'Add')
 		modules.connect_module(pma_output, '<ModulationTargets>', f'sineL_{i}', 'Freq Ratio')

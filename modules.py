@@ -191,6 +191,23 @@ def add_voice_manager(name):
 	voice_manager.append(f'</Node>')
 	return voice_manager
 
+def add_minmax(name, minimum, maximum, skew=1.0, step=0.00, polarity=0.00):
+	minmax = []
+	minmax.append(f'<Node ID="{name}" FactoryPath="control.minmax" Bypassed="0">')
+	minmax.append(f'<Parameters>')
+	minmax.append(f'<Parameter MinValue="0.0" MaxValue="1.0" ID="Value" Value="0.0"/>')
+	minmax.append(f'<Parameter MinValue="{minimum}" MaxValue="{minimum}" ID="Minimum" Value="{minimum}"/>')
+	minmax.append(f'<Parameter MinValue="{maximum}" MaxValue="{maximum}" ID="Maximum" Value="{maximum}"/>')
+	minmax.append(f'<Parameter MinValue="0.1000000014901161" MaxValue="10.0" SkewFactor="{skew}" ID="Skew" Value="{skew}"/>')
+	minmax.append(f'<Parameter MinValue="0.0" MaxValue="1.0" ID="Step" Value="{step}"/>')
+	minmax.append(f'<Parameter MinValue="0.0" MaxValue="1.0" StepSize="1.0" ID="Polarity" Value="{polarity}"/>')
+	minmax.append(f'</Parameters>')
+	minmax.append(f'<ModulationTargets>')
+	minmax.append(f'</ModulationTargets>')
+	minmax.append(f'</Node>')
+	return minmax
+
+
 def add_pma(name, value, multiply, add, scaled=False, value_max=100.0, multiply_max=100.0, add_max=100.0):
 	pma = []
 	if scaled:

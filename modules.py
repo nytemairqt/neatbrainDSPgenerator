@@ -66,7 +66,7 @@ def add_clone_sliderpack(name, num_sliders):
 	sliderpack.append(f'</Node>')
 	return sliderpack 
 
-def add_clone_cable(name, num_clones, value=1.0, mode="Fixed", use_container=True):
+def add_clone_cable(name, num_clones, value=1.0, min_value=0.0, max_value=1.0, mode="Fixed", use_container=True):
 	cable = []
 	if (use_container):
 		cable.append(f'<Node ID="container_{name}" FactoryPath="container.no_midi" Bypassed="0">')
@@ -77,7 +77,7 @@ def add_clone_cable(name, num_clones, value=1.0, mode="Fixed", use_container=Tru
 	cable.append(f'</Properties>')
 	cable.append(f'<Parameters>')
 	cable.append(f'<Parameter MinValue="1.0" MaxValue="40.0" StepSize="1.0" ID="NumClones" Value="{num_clones}"/>')
-	cable.append(f'<Parameter MinValue="0.0" MaxValue="1.0" ID="Value" Value="{value}"/>')
+	cable.append(f'<Parameter MinValue="{min_value}" MaxValue="{max_value}" ID="Value" Value="{value}"/>')
 	cable.append(f'<Parameter MinValue="0.0" MaxValue="1.0" ID="Gamma" Value="0.0"/>')
 	cable.append(f'</Parameters>')
 	cable.append(f'<ModulationTargets>')
@@ -208,7 +208,7 @@ def add_minmax(name, minimum, maximum, skew=1.0, step=0.00, polarity=0.00):
 	return minmax
 
 
-def add_pma(name, value, multiply, add, scaled=True, value_max=1.0, multiply_max=1.0, add_max=1.0):
+def add_pma(name, value, multiply, add, scaled=True, value_max=1.0, multiply_max=1.0, add_min=0.0, add_max=1.0):
 	pma = []
 	if scaled:
 		pma.append(f'<Node ID="{name}" FactoryPath="control.pma" Bypassed="0">')
@@ -219,25 +219,10 @@ def add_pma(name, value, multiply, add, scaled=True, value_max=1.0, multiply_max
 	pma.append(f'<Parameters>')
 	pma.append(f'<Parameter MinValue="0.0" MaxValue="{value_max}" ID="Value" Value="{value}" StepSize="0.01"/>')
 	pma.append(f'<Parameter MinValue="0.0" MaxValue="{multiply_max}" ID="Multiply" Value="{multiply}"/>')
-	pma.append(f'<Parameter MinValue="0.0" MaxValue="{add_max}" ID="Add" Value="{add}"/>')
+	pma.append(f'<Parameter MinValue="{add_min}" MaxValue="{add_max}" ID="Add" Value="{add}"/>')
 	pma.append(f'</Parameters>')
 	pma.append(f'</Node>')
 	return pma
-
-def add_pitch_mod(name, index=-1):
-	mod = []
-	mod.append(f'<Node ID="pitch_mod" FactoryPath="core.pitch_mod" Bypassed="0">')
-	mod.append(f'<ModulationTargets>')
-	mod.append(f'<Connection NodeId="clone_cable" ParameterId="Value"/>')
-	mod.append(f'</ModulationTargets>')
-	mod.append(f'<ComplexData>')
-	mod.append(f'<DisplayBuffers>')
-	mod.append(f'<DisplayBuffer Index="{index}"/>')
-	mod.append(f'</DisplayBuffers>')
-	mod.append(f'</ComplexData>')
-	mod.append(f'<Parameters/>')
-	mod.append(f'</Node>')
-	return mod
 
 def add_bang(name, default_value):
 	bang = []

@@ -208,7 +208,7 @@ def add_minmax(name, minimum, maximum, skew=1.0, step=0.00, polarity=0.00):
 	return minmax
 
 
-def add_pma(name, value, multiply, add, scaled=False, value_max=100.0, multiply_max=100.0, add_max=100.0):
+def add_pma(name, value, multiply, add, scaled=True, value_max=1.0, multiply_max=1.0, add_max=1.0):
 	pma = []
 	if scaled:
 		pma.append(f'<Node ID="{name}" FactoryPath="control.pma" Bypassed="0">')

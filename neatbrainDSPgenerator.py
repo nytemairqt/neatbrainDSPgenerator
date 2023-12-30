@@ -16,14 +16,13 @@ file = open(f'{PATH}/NEATBrain_Achromic.xml', 'w')
 
 # stuff gets normalized when you connect it to a cable :))))))
 
-# random global: bang -> cable.expr -> bang out -> pma_global_random(add) using Fixed cable
-# random global strength = Fixed Cable value 
-# this way we don't need any external modulators
+# should random pitch go flat? as in below value 0?
 
-# finish connecting stuff
+# random global
+	# note on functionality, set fixed cable value to random value between 0 & 1 
+	# plug cable into PMA add and make sure it scales properly
+
 # IMPORTANT: uncomment out filters, tanh etc etc
-# for static parameters, just change the Value of the sliderpack (and make sure sliders are 1.0!)
-# set Random to go between -1 and 1
 
 # by exposing the sliderpacks to the end user, we could create presets that sound like different instruments...
 # just save the ratios as a json object or array 
@@ -31,14 +30,7 @@ file = open(f'{PATH}/NEATBrain_Achromic.xml', 'w')
 # velocity FILTER
 # velocity AMPLITUDE (maybe)
 # pitch bend (global pitch mod i think)
-
-# normalize = (x[i] - min(x)) / (max(x) - min(x))
-# denorm = z[i] * (max(x) - min(x)) + min(x)
-# normalize values first
-# in scriptnode, plug the sliderpack into a chain
-# using Mul, Sub, Div and Add nodes
-# plug min(x) and max(x) into network as parameters and those control the operators
-# not too bad
+# get pitch mod working, something to do with no_midi maybe idk
 
 # Instantiate XML Doc
 
@@ -83,6 +75,7 @@ parameters = {
 	'pitchFalloffIntensity' : [0.0, 1.0, 0.01, PITCH_FALLOFF_INTENSITY],
 	'pitchFalloffDecay' : [0, 40000, 1, PITCH_FALLOFF_DECAY],
 	'pitchRandomIntensity' : [0.0, 1.0, 0.01, 0.1],
+	'pitchRandomGlobalBang' : [0.0, 1.0, 0.01, 0.1],
 	'pitchRandomGlobalIntensity' : [0.0, 1.0, 0.01, 0.1],
 	'filterFalloffDecay' : [0, 40000, 1, FILTER_FALLOFF_DECAY],
 	'filterStaticFrequency' : [500, 5000, 1, FILTER_STATIC_FREQUENCY]
@@ -99,20 +92,13 @@ if __name__=="__main__":
 	# Instantiate Nodes
 
 	nodes = []
-
-	#ahdsr_pitch = modules.add_AHDSR("ahdsrPitch", 5.0, 1.0, PITCH_FALLOFF_DECAY, 0.0, 50) # A AL D S R 
+	
 	ahdsr_filter = modules.add_AHDSR("ahdsrFilter", 5.0, 1.0, FILTER_FALLOFF_DECAY, 0.0, 50) # A AL D S R 
 	sliderpack_ratiosL = modules.add_clone_sliderpack("ratiosL", NUM_MODES)
 	sliderpack_ratiosR = modules.add_clone_sliderpack("ratiosR", NUM_MODES)
 
-
-	#sliderpack_stiffness = modules.add_clone_sliderpack("sliderpackStiffness", 1)
-
-
-	#nodes.append(ahdsr_gain)
 	nodes.append(modules.open_chain('ahdsrs', 'container.split', folded=1))
 	nodes.append(ahdsr_filter)
-	#nodes.append(ahdsr_pitch)
 	nodes.append(modules.close_chain('ahdsrs'))
 	nodes.append(modules.open_chain('ratioChains', 'container.split'))
 	nodes.append(sliderpack_ratiosL)
@@ -123,47 +109,26 @@ if __name__=="__main__":
 
 	nodes.append(modules.open_chain('global_params', 'container.split', folded=0))
 
-	cable_pitchFalloffIntensity = modules.add_clone_cable(f'pitchFalloffIntensity', NUM_MODES, mode="Fixed")		
-	cable_pitchFalloffDecay = modules.add_clone_cable(f'pitchFalloffDecay', NUM_MODES, mode="Fixed")	
-	cable_pitchRandomIntensity = modules.add_clone_cable(f'pitchRandomIntensity', NUM_MODES, mode="Fixed")	
+	cable_pitchFalloffIntensity = modules.add_clone_cable(f'pitchFalloffIntensity', NUM_MODES, mode="Fixed", use_container=True)		
+	cable_pitchFalloffDecay = modules.add_clone_cable(f'pitchFalloffDecay', NUM_MODES, mode="Fixed", use_container=True)	
+	cable_pitchRandomIntensity = modules.add_clone_cable(f'pitchRandomIntensity', NUM_MODES, mode="Fixed", use_container=True)	
 	nodes.append(cable_pitchFalloffIntensity)
 	nodes.append(cable_pitchFalloffDecay)
 	nodes.append(cable_pitchRandomIntensity)
 
 	# Random Global
+	cable_randomGlobal = modules.add_clone_cable(f'randomGlobal', NUM_MODES, value=1.0, mode="Fixed", use_container=True)
+	nodes.append(cable_randomGlobal)
 
-
-
-	chain_randomGlobal = modules.open_chain('chain_randomGlobal', 'container.chain', folded=1)
-	pitchMod_randomGlobal = modules.add_pitch_mod('pitchMod_randomGlobal', index=0)
-
-	nodes.append(chain_randomGlobal)
-	nodes.append(pitchMod_randomGlobal)
-
-
-
-
-	
-	#nodes.append(modules.add_clone_cable(f'pitchFalloffIntensity', NUM_MODES, mode="Fixed"))
-	#nodes.append(modules.add_clone_cable(f'pitchFalloffDecay', NUM_MODES, mode="Fixed"))
-	#nodes.append(modules.add_clone_cable(f'pitchRandomIntensity', NUM_MODES, mode="Fixed"))
-	#add_clone_cable(name, num_clones, mode="Fixed")
-	#nodes.append(modules.add_clone_sliderpack(f'ahdsrPitch', NUM_MODES))
-	#nodes.append(modules.add_clone_sliderpack(f'pitchFalloffIntensity', NUM_MODES))
-	#nodes.append(modules.add_clone_sliderpack(f'pitchFalloffDecay', NUM_MODES))
-	#nodes.append(modules.add_clone_sliderpack(f'pitchRandomIntensity', NUM_MODES))
-	nodes.append(modules.close_chain('chain_randomGlobal'))
 
 	# Random Single
 	cable_randomSingle = modules.add_clone_cable(f'randomSingle', NUM_MODES, value=1.0, mode="Random", use_container=False)
+	nodes.append(cable_randomSingle)	
 
-	nodes.append(cable_randomSingle)
-	
-
+	# End Params
 	nodes.append(modules.close_chain('global_params'))
 
 	# Begin Oscillators
-
 	if STEREO_INSTRUMENT:
 		nodes.append(modules.open_chain("multiChannel", "container.multi", folded=1))
 
@@ -171,43 +136,9 @@ if __name__=="__main__":
 	nodes.append(modules.open_chain("chainL", "container.chain"))
 
 	# Cloner Object
-
 	nodes.append(modules.open_cloner('clonerL'))
 
-	# Clone Chain
-
-	# ===============================BACKUP================================
-	''' 
-	for i in range(NUM_MODES):
-		nodes.append([f'<!-- Begin Clone Child -->'])
-		nodes.append([f'<Node ID="clone_child" FactoryPath="container.chain" Bypassed="0">'])
-		nodes.append([f'<Nodes>'])
-		nodes.append(modules.open_chain(f'sineL_chain', 'container.chain', folded=1))
-		bang_input = modules.add_bang(f'sineL_bangInput', 0.1) # connect to parameter "Random Strength"
-		cable = modules.add_cable_expr(f'sineL_cable', 'Math.random() * input')
-		bang_output = modules.add_bang(f'sineL_bangOutput', 1.0)
-		pma_ahdsrStrength = modules.add_pma(f'sineL_pma_ahdsrStrength', 1.0, PITCH_FALLOFF_INTENSITY, 1.0) # Connect Multiply to "Strength" Param, connect Value to AHDSR_Pitch
-		pma_ahdsr = modules.add_pma(f'sineL_pma_ahdsr', 1.0, 1.0, 1.0) # Connect Value to "Modes{i}", connect Add to previous PMA
-		pma_random = modules.add_pma(f'sineL_pma_random', 1.0, 1.0, 0.0)
-		pma_randomGlobal = modules.add_pma(f'sineL_pma_randomGlobal', 1.0, 1.0, 0.0)
-		pma_output = modules.add_pma(f'sineL_pma_output', 1.0, 1.0, 0.0)
-		nodes.append(bang_input)
-		nodes.append(cable)
-		nodes.append(bang_output)
-		nodes.append(pma_ahdsrStrength) 
-		nodes.append(pma_ahdsr) 
-		nodes.append(pma_random)
-		nodes.append(pma_randomGlobal)
-		nodes.append(pma_output)
-		nodes.append(modules.add_sine(f'sineL', 1.0))
-		nodes.append(modules.close_chain(f'sineL_chain'))
-		nodes.append([f'</Nodes>'])
-		nodes.append([f'<Parameters/>'])
-		nodes.append([f'</Node>'])
-		nodes.append([f'<!-- End Clone Child -->'])
-	'''
-	# =======================================================================
-
+	# Left Channel (Or Center if !Stereo)
 	for i in range(NUM_MODES):
 		nodes.append([f'<!-- Begin Clone Child -->'])
 		nodes.append([f'<Node ID="sineL_{i}_chain" FactoryPath="container.chain" Bypassed="0">'])
@@ -216,26 +147,13 @@ if __name__=="__main__":
 		# Need these declared...
 		ahdsr_pitch = modules.add_AHDSR(f"sineL_{i}_ahdsrPitch", 5.0, 1.0, PITCH_FALLOFF_DECAY, 0.0, 50) # A AL D S R 
 
+		pma_random = modules.add_pma(f'sineL_{i}_pma_random', 1.0, 1.0, 0.0, scaled=False, value_max=1.0, multiply_max=1.0, add_max=1.0)
+		pma_randomGlobal = modules.add_pma(f'sineL_{i}_pma_randomGlobal', 1.0, 1.0, 0.0, scaled=False, value_max=1.0, multiply_max=1.0, add_max=1.0)
 
-		# add a single random modulator to the Synth
-		# use pitch_mod for Global Random
-		# CLONE CABLE has a RANDOM mode for individual random, plug randomIntensity into the Value as a global multiplier
-
-		pma_random = modules.add_pma(f'sineL_{i}_pma_random', 1.0, 1.0, 0.0, value_max=1.0, multiply_max=1.0, add_max=1.0)
-		pma_randomGlobal = modules.add_pma(f'sineL_{i}_pma_randomGlobal', 1.0, 1.0, 0.0, value_max=1.0, multiply_max=1.0, add_max=1.0)
-
-		# USE CONTROL.MINMAX YOU CLOWN
-		# create sliderpack, give it the ratios for values
-		# connect sliderpack to this
+		# Base Ratio Sliderpacks plug into this:
 		denormalizer = modules.add_minmax(f'sineL_{i}_denormalizer', denorm_ratios["min_ratio_L"], denorm_ratios["max_ratio_L"])
 
-
-		# sliderpackvalue * (max(x) - min(x)) + min(x)
-		# cable.expr -> 1-value min(x):value || INVERTED MIN
-		# pma -> max(x):value, 1-min(x):add || max(x) - min(x) (invert MIN to use PMA)
-		# pma -> slider:value, :add
-
-		pma_output = modules.add_pma(f'sineL_{i}_pma_output', 1.0, 1.0, 0.0)
+		pma_output = modules.add_pma(f'sineL_{i}_pma_output', 1.0, 1.0, 0.0, scaled=False, value_max=100.0)
 		sine = modules.add_sine(f'sineL_{i}', 1.0)
 
 		nodes.append(ahdsr_pitch)		
@@ -254,12 +172,12 @@ if __name__=="__main__":
 		# ONLY CONNECT THE FIRST CLONE
 		# ============================
 		if i == 0:
-			#modules.connect_module(sliderpack_ratiosL, '<ModulationTargets>', f'sineL_{i}_pma_ratioScalar', 'Value')
 			modules.connect_module(cable_pitchFalloffIntensity, '<ModulationTargets>', f'sineL_{i}_ahdsrPitch', 'AttackLevel')	
 			modules.connect_module(cable_pitchFalloffDecay, '<ModulationTargets>', f'sineL_{i}_ahdsrPitch', 'Decay')
 			modules.connect_module(cable_pitchRandomIntensity, '<ModulationTargets>', f'sineL_{i}_bangInput', 'Value')
 			modules.connect_module(cable_randomSingle, '<ModulationTargets>', f'sineL_{i}_pma_random', 'Add')	
-									
+			modules.connect_module(cable_randomGlobal, '<ModulationTargets>', f'sineL_{i}_pma_randomGlobal', 'Add')								
+
 		modules.connect_module(ahdsr_pitch, '<!-- CV -->', f'sineL_{i}_pma_random', 'Value')		
 		modules.connect_module(denormalizer, '<ModulationTargets>', f'sineL_{i}_pma_output', 'Value')
 		modules.connect_module(pma_random, '<ModulationTargets>', f'sineL_{i}_pma_randomGlobal', 'Value')		
@@ -338,14 +256,16 @@ if __name__=="__main__":
 
 	# Connect Sine Waves
 
-	#modules.connect_module(sliderpack_ratiosL, '<ModulationTargets>', 'sineL_pma_output', 'Value')
+	modules.connect_module(sliderpack_ratiosL, '<ModulationTargets>', 'sineL_pma_output', 'Value')
 	#modules.connect_module(sliderpack_ratiosR, '<ModulationTargets>', 'sineR_pma_output', 'Value')
-	#modules.connect_parameter(NETWORK_PARAMS, '<ModulationTargets>', )
 
 	# Connect Global Parameters		
 	modules.connect_parameter(NETWORK_PARAMS, 'pitchFalloffIntensity', 'cable_pitchFalloffIntensity', 'Value')
 	modules.connect_parameter(NETWORK_PARAMS, 'pitchFalloffDecay', 'cable_pitchFalloffDecay', 'Value')
 	modules.connect_parameter(NETWORK_PARAMS, 'pitchRandomIntensity', 'cable_randomSingle', 'Value')
+	modules.connect_parameter(NETWORK_PARAMS, 'pitchRandomGlobalBang', 'cable_randomGlobal', 'Value')
+	#modules.connect_parameter(NETWORK_PARAMS, 'pitchMod_randomGlobal', 'cable_randomGlobal', 'Value')
+
 	#modules.connect_parameter(NETWORK_PARAMS, 'filterFalloffDecay', 'ahdsrFilter', 'Decay')
 	#modules.connect_parameter(NETWORK_PARAMS, 'stiffness', 'tanhDry', 'Gain')
 	#modules.connect_parameter(NETWORK_PARAMS, 'stiffness', 'tanhWet', 'Gain')

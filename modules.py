@@ -290,10 +290,8 @@ def add_switcher(name):
 	switcher.append(f'<Nodes>')
 	switcher.append(f'<Node ID="tanhBypass" FactoryPath="container.soft_bypass" Bypassed="0">')
 	switcher.append(f'<Nodes>')
-	switcher.append(f'<Node ID="tanh" FactoryPath="math.expr" Bypassed="0">')
+	switcher.append(f'<Node ID="tanh" FactoryPath="math.tanh" Bypassed="0">')
 	switcher.append(f'<Properties>')
-	switcher.append(f'<Property ID="Code" Value="input + Math.tanh(input)"/>') # TANH
-	switcher.append(f'<Property ID="Debug" Value="0"/>')
 	switcher.append(f'</Properties>')
 	switcher.append(f'<Parameters>')
 	switcher.append(f'<Parameter MinValue="0.0" MaxValue="1.0" ID="Value" Value="1.0"/>')
@@ -307,10 +305,8 @@ def add_switcher(name):
 	switcher.append(f'</Node>')
 	switcher.append(f'<Node ID="absBypass" FactoryPath="container.soft_bypass" Bypassed="0">')
 	switcher.append(f'<Nodes>')
-	switcher.append(f'<Node ID="abs" FactoryPath="math.expr" Bypassed="0">')
+	switcher.append(f'<Node ID="abs" FactoryPath="math.abs" Bypassed="0">')
 	switcher.append(f'<Properties>')
-	switcher.append(f'<Property ID="Code" Value="input + Math.abs(input)"/>') # ABS
-	switcher.append(f'<Property ID="Debug" Value="0"/>')
 	switcher.append(f'</Properties>')
 	switcher.append(f'<Parameters>')
 	switcher.append(f'<Parameter MinValue="0.0" MaxValue="1.0" ID="Value" Value="1.0"/>')

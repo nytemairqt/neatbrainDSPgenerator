@@ -132,7 +132,7 @@ if __name__=="__main__":
 		nodes.append(modules.open_chain("multiChannel", "container.multi", folded=1))
 
 	# Left Channel
-	nodes.append(modules.open_chain("chainL", "container.chain"))
+	nodes.append(modules.open_chain("chainL", "container.chain", folded=1))
 
 	# Cloner Object
 	nodes.append(modules.open_cloner('clonerL'))
@@ -179,9 +179,7 @@ if __name__=="__main__":
 		# ============================
 		if i == 0:
 			modules.connect_module(cable_pitchFalloffIntensity, '<ModulationTargets>', f'sineL_{i}_ahdsrPitch', 'AttackLevel')	
-			modules.connect_module(cable_pitchFalloffDecay, '<ModulationTargets>', f'sineL_{i}_ahdsrPitch', 'Decay')
-			#modules.connect_module(cable_randomSingle, '<ModulationTargets>', f'sineL_{i}_pma_random', 'Add')	
-			#modules.connect_module(cable_randomGlobal, '<ModulationTargets>', f'sineL_{i}_pma_randomGlobal', 'Add')								
+			modules.connect_module(cable_pitchFalloffDecay, '<ModulationTargets>', f'sineL_{i}_ahdsrPitch', 'Decay')							
 			modules.connect_module(cable_randomGlobal, '<ModulationTargets>', f'sineL_{i}_pmaRandomGlobal', 'Value')
 			modules.connect_module(cable_randomGlobalIntensity, 'ModulationTargets>', f'sineL_{i}_pmaRandomGlobal', 'Multiply')
 			modules.connect_module(cable_randomSingle, '<ModulationTargets>', f'sineL_{i}_pmaRandomSingle', 'Value')
@@ -255,7 +253,6 @@ if __name__=="__main__":
 
 	# Stiffness
 
-	'''
 	nodes.append(modules.open_chain("tanhSplit", "container.split"))
 	nodes.append(modules.open_chain("tanhOff", "container.chain"))
 	nodes.append(modules.add_gain("tanhDry", invert=True))
@@ -270,7 +267,6 @@ if __name__=="__main__":
 	nodes.append(modules.add_filter('lowPass', 2000))
 	nodes.append(modules.add_filter('ahdsrFilter', 4000))
 	modules.connect_module(ahdsr_filter, '<!-- CV -->', 'ahdsrFilter', 'Frequency')	
-	'''
 
 	# Connect Sine Waves
 
@@ -285,11 +281,11 @@ if __name__=="__main__":
 	modules.connect_parameter(NETWORK_PARAMS, 'pitchRandomGlobalIntensity', 'cable_randomGlobalIntensity', 'Value')
 	modules.connect_parameter(NETWORK_PARAMS, 'pitchRandomSingleIntensity', 'cable_randomSingleIntensity', 'Value')
 
-	#modules.connect_parameter(NETWORK_PARAMS, 'filterFalloffDecay', 'ahdsrFilter', 'Decay')
-	#modules.connect_parameter(NETWORK_PARAMS, 'stiffness', 'tanhDry', 'Gain')
-	#modules.connect_parameter(NETWORK_PARAMS, 'stiffness', 'tanhWet', 'Gain')
-	#modules.connect_parameter(NETWORK_PARAMS, 'stiffnessType', 'stiffnessSwitch', 'Type')
-	#modules.connect_parameter(NETWORK_PARAMS, 'filterStaticFrequency', 'lowPass', 'Frequency')
+	modules.connect_parameter(NETWORK_PARAMS, 'filterFalloffDecay', 'ahdsrFilter', 'Decay')
+	modules.connect_parameter(NETWORK_PARAMS, 'stiffness', 'tanhDry', 'Gain')
+	modules.connect_parameter(NETWORK_PARAMS, 'stiffness', 'tanhWet', 'Gain')
+	modules.connect_parameter(NETWORK_PARAMS, 'stiffnessType', 'stiffnessSwitch', 'Type')
+	modules.connect_parameter(NETWORK_PARAMS, 'filterStaticFrequency', 'lowPass', 'Frequency')
 
 	# Start Writers
 

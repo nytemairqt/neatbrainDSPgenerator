@@ -1,7 +1,8 @@
 #networkbuilder
 
 string = '<?xml version="1.0" encoding="UTF-8"?>'
-PATH = 'D:/Documents/HISE/neatbraintestingSCRIPTNODE/DspNetworks/Networks'
+#PATH = 'D:/Documents/HISE/neatbraintestingSCRIPTNODE/DspNetworks/Networks'
+PATH = 'D:/Documents/HISE/neatbraininstrument/DspNetworks/Networks'
 
 import modules
 from hyperparameters import *
@@ -10,27 +11,20 @@ file = open(f'{PATH}/NEATBrain_Achromic.xml', 'w')
 
 # TO DO
 
-# Scale ratios to be between 0 & 1 (divide by 100)
-# Then scale output of sliderpack back to the raw ratio value
-# take Value of Sliderpack and make it 100
+# Connect ratios to front-end
+# Scale ratios to be between 0 & 1
+# Z = (X - min(x)) / (max(x) - min(x))
+# denormalize with fancy node
 
-# stuff gets normalized when you connect it to a cable :))))))
-
-# should random pitch go flat? as in below value 0?
-
-# random global
-	# note on functionality, set fixed cable value to random value between 0 & 1 
-	# plug cable into PMA add and make sure it scales properly
+# Pitch Bend
+# Pitch Velocity
+# Filter Velocity
+# Amplitude Velocity
 
 # IMPORTANT: uncomment out filters, tanh etc etc
 
 # by exposing the sliderpacks to the end user, we could create presets that sound like different instruments...
 # just save the ratios as a json object or array 
-# velocity PITCH
-# velocity FILTER
-# velocity AMPLITUDE (maybe)
-# pitch bend (global pitch mod i think)
-# get pitch mod working, something to do with no_midi maybe idk
 
 # Instantiate XML Doc
 
@@ -66,7 +60,6 @@ denorm_ratios = {
 
 for ratio in denorm_ratios:
 	modules.create_parameter(NETWORK_PARAMS, ratio, denorm_ratios[ratio], denorm_ratios[ratio], 0.01, denorm_ratios[ratio])
-
 
 parameters = {	
 	'stiffness' : [0.0, 1.0, 0.01, 0.0],
@@ -107,7 +100,7 @@ if __name__=="__main__":
 
 	# Parameter Nodes for Clones
 
-	nodes.append(modules.open_chain('global_params', 'container.split', folded=0))
+	nodes.append(modules.open_chain('global_params', 'container.split', folded=1))
 
 	cable_pitchFalloffIntensity = modules.add_clone_cable(f'pitchFalloffIntensity', NUM_MODES, mode="Fixed", use_container=True)		
 	cable_pitchFalloffDecay = modules.add_clone_cable(f'pitchFalloffDecay', NUM_MODES, mode="Fixed", use_container=True)	
@@ -160,9 +153,8 @@ if __name__=="__main__":
 		pma_combineA = modules.add_pma(f'sineL_{i}_pmaCombineA', 1.0, 1.0, 0.0, scaled=False, value_max=1.0, add_min=-1.0, add_max=1.0)
 		pma_combineB = modules.add_pma(f'sineL_{i}_pmaCombineB', 1.0, 1.0, 0.0, scaled=False, value_max=1.0, add_min=-1.0, add_max=1.0)
 
-		# Base Ratio Sliderpacks plug into this:
-		denormalizer = modules.add_minmax(f'sineL_{i}_denormalizer', denorm_ratios["min_ratio_L"], denorm_ratios["max_ratio_L"])
-
+		# Need to normalize ratio input
+		pma_normalizer = modules.add_pma(f'sineL_{i}_pma_normalizer', 1.0, 1.0, 0.0, scaled=False)
 		pma_output = modules.add_pma(f'sineL_{i}_pma_output', 1.0, 1.0, 0.0, scaled=False, add_min=-1.0, add_max=1.0, value_max=100.0)
 		sine = modules.add_sine(f'sineL_{i}', 1.0)
 
@@ -173,7 +165,7 @@ if __name__=="__main__":
 		nodes.append(modules.close_chain(f'sineL_{i}_pitchSplit'))
 		nodes.append(pma_combineA)
 		nodes.append(pma_combineB)		
-		nodes.append(denormalizer)
+		nodes.append(pma_normalizer)
 		nodes.append(pma_output)
 		nodes.append(sine)
 
@@ -194,6 +186,8 @@ if __name__=="__main__":
 			modules.connect_module(cable_randomGlobalIntensity, 'ModulationTargets>', f'sineL_{i}_pmaRandomGlobal', 'Multiply')
 			modules.connect_module(cable_randomSingle, '<ModulationTargets>', f'sineL_{i}_pmaRandomSingle', 'Value')
 			modules.connect_module(cable_randomSingleIntensity, 'ModulationTargets>', f'sineL_{i}_pmaRandomSingle', 'Multiply')
+			modules.connect_module(sliderpack_ratiosL, '<ModulationTargets>', f'sineL_{i}_pma_normalizer', 'Value')
+
 
 		# Stack Pitch Modulation
 		modules.connect_module(ahdsr_pitch, '<!-- CV -->', f'sineL_{i}_pmaCombineA', 'Value')
@@ -204,7 +198,8 @@ if __name__=="__main__":
 
 		modules.connect_module(pma_combineB, '<ModulationTargets>', f'sineL_{i}_pma_output', 'Add')
 
-		modules.connect_module(denormalizer, '<ModulationTargets>', f'sineL_{i}_pma_output', 'Value')		
+		modules.connect_module(pma_normalizer, '<ModulationTargets>', f'sineL_{i}_pma_output', 'Value')		
+
 		modules.connect_module(pma_output, '<ModulationTargets>', f'sineL_{i}', 'Freq Ratio')
 
 	nodes.append(modules.close_cloner("clonerL", NUM_MODES))
@@ -279,7 +274,8 @@ if __name__=="__main__":
 
 	# Connect Sine Waves
 
-	modules.connect_module(sliderpack_ratiosL, '<ModulationTargets>', 'sineL_pma_output', 'Value')
+	#modules.connect_module(sliderpack_ratiosL, '<ModulationTargets>', 'sineL_pma_output', 'Value')
+	#modules.connect_module(sliderpack_ratiosL, '<ModulationTargets>', )
 	#modules.connect_module(sliderpack_ratiosR, '<ModulationTargets>', 'sineR_pma_output', 'Value')
 
 	# Connect Global Parameters		

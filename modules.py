@@ -224,6 +224,17 @@ def add_pma(name, value, multiply, add, scaled=True, value_max=1.0, multiply_max
 	pma.append(f'</Node>')
 	return pma
 
+def add_normalizer(name):
+	normalizer = []
+	normalizer.append(f'<Node ID="{name}" FactoryPath="control.normaliser" Bypassed="0">')
+	normalizer.append(f'<ModulationTargets>')
+	normalizer.append(f'</ModulationTargets>')
+	normalizer.append(f'<Parameters>')
+	normalizer.append(f'<Parameter MinValue="0.0" MaxValue="1000.0" ID="Value" Value="1.0"/>')
+	normalizer.append(f'</Parameters>')
+	normalizer.append(f'</Node>')
+	return normalizer
+
 def add_bang(name, default_value):
 	bang = []
 	bang.append(f'<Node ID="{name}" FactoryPath="control.voice_bang" Bypassed="0">')

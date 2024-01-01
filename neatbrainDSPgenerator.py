@@ -102,26 +102,38 @@ if __name__=="__main__":
 
 	nodes.append(modules.open_chain('global_params', 'container.split', folded=1))
 
-	cable_pitchFalloffIntensity = modules.add_clone_cable(f'pitchFalloffIntensity', NUM_MODES, mode="Fixed", use_container=True)		
-	cable_pitchFalloffDecay = modules.add_clone_cable(f'pitchFalloffDecay', NUM_MODES, mode="Fixed", use_container=True)	
-	nodes.append(cable_pitchFalloffIntensity)
-	nodes.append(cable_pitchFalloffDecay)
+	cable_pitchFalloffIntensityL = modules.add_clone_cable(f'pitchFalloffIntensityL', NUM_MODES, mode="Fixed", use_container=True)		
+	cable_pitchFalloffIntensityR = modules.add_clone_cable(f'pitchFalloffIntensityR', NUM_MODES, mode="Fixed", use_container=True)		
+	cable_pitchFalloffDecayL = modules.add_clone_cable(f'pitchFalloffDecayL', NUM_MODES, mode="Fixed", use_container=True)	
+	cable_pitchFalloffDecayR = modules.add_clone_cable(f'pitchFalloffDecayR', NUM_MODES, mode="Fixed", use_container=True)	
+	nodes.append(cable_pitchFalloffIntensityL)
+	nodes.append(cable_pitchFalloffIntensityR)
+	nodes.append(cable_pitchFalloffDecayL)
+	nodes.append(cable_pitchFalloffDecayR)
 
 	# Random Global
 	nodes.append(modules.open_chain('cable_randomGlobalContainer', 'container.chain', folded=0))
-	cable_randomGlobal = modules.add_clone_cable(f'randomGlobal', NUM_MODES, value=1.0, min_value=-1.0, max_value=1.0, mode="Fixed", use_container=True)
-	cable_randomGlobalIntensity = modules.add_clone_cable(f'randomGlobalIntensity', NUM_MODES, value=1.0, min_value=0.0, max_value=1.0, mode="Fixed", use_container=True)
-	nodes.append(cable_randomGlobal)
-	nodes.append(cable_randomGlobalIntensity)
+	cable_randomGlobalL = modules.add_clone_cable(f'randomGlobalL', NUM_MODES, value=1.0, min_value=-1.0, max_value=1.0, mode="Fixed", use_container=True)
+	cable_randomGlobalR = modules.add_clone_cable(f'randomGlobalR', NUM_MODES, value=1.0, min_value=-1.0, max_value=1.0, mode="Fixed", use_container=True)
+	cable_randomGlobalIntensityL = modules.add_clone_cable(f'randomGlobalIntensityL', NUM_MODES, value=1.0, min_value=0.0, max_value=1.0, mode="Fixed", use_container=True)
+	cable_randomGlobalIntensityR = modules.add_clone_cable(f'randomGlobalIntensityR', NUM_MODES, value=1.0, min_value=0.0, max_value=1.0, mode="Fixed", use_container=True)
+	nodes.append(cable_randomGlobalL)
+	nodes.append(cable_randomGlobalR)
+	nodes.append(cable_randomGlobalIntensityL)
+	nodes.append(cable_randomGlobalIntensityR)
 	nodes.append(modules.close_chain('cable_randomGlobalContainer'))
 
 
 	# Random Single
 	nodes.append(modules.open_chain('cable_randomSingleContainer', 'container.chain', folded=0))
-	cable_randomSingle = modules.add_clone_cable(f'randomSingle', NUM_MODES, value=1.0, min_value= -1.0, max_value = 1.0, mode="Random", use_container=False)
-	cable_randomSingleIntensity = modules.add_clone_cable(f'randomSingleIntensity', NUM_MODES, value=1.0, min_value= 0.0, max_value = 1.0, mode="Fixed", use_container=True)
-	nodes.append(cable_randomSingle)	
-	nodes.append(cable_randomSingleIntensity)
+	cable_randomSingleL = modules.add_clone_cable(f'randomSingleL', NUM_MODES, value=1.0, min_value= -1.0, max_value = 1.0, mode="Random", use_container=False)
+	cable_randomSingleR = modules.add_clone_cable(f'randomSingleR', NUM_MODES, value=1.0, min_value= -1.0, max_value = 1.0, mode="Random", use_container=False)
+	cable_randomSingleIntensityL = modules.add_clone_cable(f'randomSingleIntensityL', NUM_MODES, value=1.0, min_value= 0.0, max_value = 1.0, mode="Fixed", use_container=True)
+	cable_randomSingleIntensityR = modules.add_clone_cable(f'randomSingleIntensityR', NUM_MODES, value=1.0, min_value= 0.0, max_value = 1.0, mode="Fixed", use_container=True)
+	nodes.append(cable_randomSingleL)	
+	nodes.append(cable_randomSingleR)	
+	nodes.append(cable_randomSingleIntensityL)
+	nodes.append(cable_randomSingleIntensityR)
 	nodes.append(modules.close_chain('cable_randomSingleContainer'))
 
 	# End Params
@@ -178,14 +190,13 @@ if __name__=="__main__":
 		# ONLY CONNECT THE FIRST CLONE
 		# ============================
 		if i == 0:
-			modules.connect_module(cable_pitchFalloffIntensity, '<ModulationTargets>', f'sineL_{i}_ahdsrPitch', 'AttackLevel')	
-			modules.connect_module(cable_pitchFalloffDecay, '<ModulationTargets>', f'sineL_{i}_ahdsrPitch', 'Decay')							
-			modules.connect_module(cable_randomGlobal, '<ModulationTargets>', f'sineL_{i}_pmaRandomGlobal', 'Value')
-			modules.connect_module(cable_randomGlobalIntensity, 'ModulationTargets>', f'sineL_{i}_pmaRandomGlobal', 'Multiply')
-			modules.connect_module(cable_randomSingle, '<ModulationTargets>', f'sineL_{i}_pmaRandomSingle', 'Value')
-			modules.connect_module(cable_randomSingleIntensity, 'ModulationTargets>', f'sineL_{i}_pmaRandomSingle', 'Multiply')
+			modules.connect_module(cable_pitchFalloffIntensityL, '<ModulationTargets>', f'sineL_{i}_ahdsrPitch', 'AttackLevel')	
+			modules.connect_module(cable_pitchFalloffDecayL, '<ModulationTargets>', f'sineL_{i}_ahdsrPitch', 'Decay')							
+			modules.connect_module(cable_randomGlobalL, '<ModulationTargets>', f'sineL_{i}_pmaRandomGlobal', 'Value')
+			modules.connect_module(cable_randomGlobalIntensityL, 'ModulationTargets>', f'sineL_{i}_pmaRandomGlobal', 'Multiply')
+			modules.connect_module(cable_randomSingleL, '<ModulationTargets>', f'sineL_{i}_pmaRandomSingle', 'Value')
+			modules.connect_module(cable_randomSingleIntensityL, 'ModulationTargets>', f'sineL_{i}_pmaRandomSingle', 'Multiply')
 			modules.connect_module(sliderpack_ratiosL, '<ModulationTargets>', f'sineL_{i}_pma_normalizer', 'Value')
-
 
 		# Stack Pitch Modulation
 		modules.connect_module(ahdsr_pitch, '<!-- CV -->', f'sineL_{i}_pmaCombineA', 'Value')
@@ -207,45 +218,82 @@ if __name__=="__main__":
 
 	nodes.append(modules.close_chain("chainL"))
 
+	# RIGHT SIDE
 	if STEREO_INSTRUMENT:
 		# Right Channel
-		nodes.append(modules.open_chain("chainR", "container.chain"))
+		nodes.append(modules.open_chain("chainR", "container.chain", folded=1))
 
 		# Cloner Object
-
 		nodes.append(modules.open_cloner('clonerR'))
 
-		# Clone Chain 
-
-		
+		# Right Channel
 		for i in range(NUM_MODES):
 			nodes.append([f'<!-- Begin Clone Child -->'])
-			#nodes.append([f'<Node ID="clone_child" FactoryPath="container.chain" Bypassed="0">'])
 			nodes.append([f'<Node ID="sineR_{i}_chain" FactoryPath="container.chain" Bypassed="0">'])
 			nodes.append([f'<Nodes>'])
 
-			#nodes.append(modules.open_chain(f'sineR_chain', 'container.chain', folded=1))
-			#nodes.append(modules.add_bang(f'sineR_{i}_bangInput', 0.1)) # connect to parameter "Random Strength"
-			#nodes.append(modules.add_cable_expr(f'sineR_{i}_cable', 'Math.random() * input'))
-			#nodes.append(modules.add_bang(f'sineR_{i}_bangOutput', 1.0))
-			nodes.append(modules.add_pma(f'sineR_{i}_pma_ahdsrStrength', 1.0, PITCH_FALLOFF_INTENSITY, 1.0)) # Connect Multiply to "Strength" Param, connect Value to AHDSR_Pitch
-			nodes.append(modules.add_pma(f'sineR_{i}_pma_ahdsr', 1.0, 1.0, 1.0)) # Connect Value to "Modes{i}", connect Add to previous PMA
-			nodes.append(modules.add_pma(f'sineR_{i}_pma_random', 1.0, 1.0, 0.0))
-			nodes.append(modules.add_pma(f'sineR_{i}_pma_randomGlobal', 1.0, 1.0, 0.0))
-			nodes.append(modules.add_pma(f'sineR_{i}_pma_output', 1.0, 1.0, 0.0))
-			nodes.append(modules.add_sine(f'sineR_{i}', 1.0))
-			#nodes.append(modules.close_chain(f'sineR_chain_{i}'))
+			# Need these declared...
+			
+			ahdsr_pitch = modules.add_AHDSR(f'sineR_{i}_ahdsrPitch', 5.0, 1.0, PITCH_FALLOFF_DECAY, 0.0, 50) # A AL D S R 
+
+			pma_randomSingle = modules.add_pma(f'sineR_{i}_pmaRandomSingle', 1.0, 1.0, 0.0, scaled=False, value_max=1.0, add_min=-1.0, add_max=1.0)
+			pma_randomGlobal = modules.add_pma(f'sineR_{i}_pmaRandomGlobal', 1.0, 1.0, 0.0, scaled=False, value_max=1.0, add_min=-1.0, add_max=1.0)
+
+			pma_combineA = modules.add_pma(f'sineR_{i}_pmaCombineA', 1.0, 1.0, 0.0, scaled=False, value_max=1.0, add_min=-1.0, add_max=1.0)
+			pma_combineB = modules.add_pma(f'sineR_{i}_pmaCombineB', 1.0, 1.0, 0.0, scaled=False, value_max=1.0, add_min=-1.0, add_max=1.0)
+
+			# Need to normalize ratio input
+			pma_normalizer = modules.add_pma(f'sineR_{i}_pma_normalizer', 1.0, 1.0, 0.0, scaled=False)
+			pma_output = modules.add_pma(f'sineR_{i}_pma_output', 1.0, 1.0, 0.0, scaled=False, add_min=-1.0, add_max=1.0, value_max=100.0)
+			sine = modules.add_sine(f'sineR_{i}', 1.0)
+
+			nodes.append(modules.open_chain(f'sineR_{i}_pitchSplit', 'container.split', folded=True))
+			nodes.append(ahdsr_pitch)		
+			nodes.append(pma_randomGlobal)
+			nodes.append(pma_randomSingle)		
+			nodes.append(modules.close_chain(f'sineR_{i}_pitchSplit'))
+			nodes.append(pma_combineA)
+			nodes.append(pma_combineB)		
+			nodes.append(pma_normalizer)
+			nodes.append(pma_output)
+			nodes.append(sine)
 
 			nodes.append([f'</Nodes>'])
 			nodes.append([f'<Parameters/>'])
 			nodes.append([f'</Node>']) # Manually Close
 			nodes.append([f'<!-- End Clone Child -->'])
 
-			# Connect Sliderpacks
-			#modules.connect_parameter(nodes, 'sliderpack_pitchRandomIntensity', f'sineR_{i}_bangInput', 'Value')
+			# ============================
+			# ONLY CONNECT THE FIRST CLONE
+			# ============================
+			
+			if i == 0:
+				modules.connect_module(cable_pitchFalloffIntensityR, '<ModulationTargets>', f'sineR_{i}_ahdsrPitch', 'AttackLevel')	
+				modules.connect_module(cable_pitchFalloffDecayR, '<ModulationTargets>', f'sineR_{i}_ahdsrPitch', 'Decay')							
+				modules.connect_module(cable_randomGlobalR, '<ModulationTargets>', f'sineR_{i}_pmaRandomGlobal', 'Value')
+				modules.connect_module(cable_randomGlobalIntensityR, 'ModulationTargets>', f'sineR_{i}_pmaRandomGlobal', 'Multiply')
+				modules.connect_module(cable_randomSingleR, '<ModulationTargets>', f'sineR_{i}_pmaRandomSingle', 'Value')
+				modules.connect_module(cable_randomSingleIntensityR, 'ModulationTargets>', f'sineR_{i}_pmaRandomSingle', 'Multiply')
+				#modules.connect_module(sliderpack_ratiosR, '<ModulationTargets>', f'sineR_{i}_pma_normalizer', 'Value')
+
+
+
+			# Stack Pitch Modulation
+			'''
+			modules.connect_module(ahdsr_pitch, '<!-- CV -->', f'sineR_{i}_pmaCombineA', 'Value')
+			modules.connect_module(pma_randomGlobal, '<ModulationTargets>', f'sineR_{i}_pmaCombineA', 'Add')
+
+			modules.connect_module(pma_combineA, '<ModulationTargets>', f'sineR_{i}_pmaCombineB', 'Value')
+			modules.connect_module(pma_randomSingle, '<ModulationTargets>', f'sineR_{i}_pmaCombineB', 'Add')
+
+			modules.connect_module(pma_combineB, '<ModulationTargets>', f'sineR_{i}_pma_output', 'Add')
+
+			modules.connect_module(pma_normalizer, '<ModulationTargets>', f'sineR_{i}_pma_output', 'Value')		
+
+			modules.connect_module(pma_output, '<ModulationTargets>', f'sineR_{i}', 'Freq Ratio')
+			'''
 
 		nodes.append(modules.close_cloner("clonerR", NUM_MODES))
-
 
 		nodes.append(modules.add_jpanner("jpanRight", 1.0))
 		nodes.append(modules.close_chain("chainR"))
@@ -253,7 +301,7 @@ if __name__=="__main__":
 
 	# Stiffness
 
-	nodes.append(modules.open_chain("tanhSplit", "container.split"))
+	nodes.append(modules.open_chain("tanhSplit", "container.split", folded=1))
 	nodes.append(modules.open_chain("tanhOff", "container.chain"))
 	nodes.append(modules.add_gain("tanhDry", invert=True))
 	nodes.append(modules.close_chain("tanhOff"))
@@ -268,18 +316,19 @@ if __name__=="__main__":
 	nodes.append(modules.add_filter('ahdsrFilter', 4000))
 	modules.connect_module(ahdsr_filter, '<!-- CV -->', 'ahdsrFilter', 'Frequency')	
 
-	# Connect Sine Waves
-
-	#modules.connect_module(sliderpack_ratiosL, '<ModulationTargets>', 'sineL_pma_output', 'Value')
-	#modules.connect_module(sliderpack_ratiosL, '<ModulationTargets>', )
-	#modules.connect_module(sliderpack_ratiosR, '<ModulationTargets>', 'sineR_pma_output', 'Value')
-
 	# Connect Global Parameters		
-	modules.connect_parameter(NETWORK_PARAMS, 'pitchFalloffIntensity', 'cable_pitchFalloffIntensity', 'Value')
-	modules.connect_parameter(NETWORK_PARAMS, 'pitchFalloffDecay', 'cable_pitchFalloffDecay', 'Value')
-	modules.connect_parameter(NETWORK_PARAMS, 'pitchRandomGlobalBang', 'cable_randomGlobal', 'Value')	
-	modules.connect_parameter(NETWORK_PARAMS, 'pitchRandomGlobalIntensity', 'cable_randomGlobalIntensity', 'Value')
-	modules.connect_parameter(NETWORK_PARAMS, 'pitchRandomSingleIntensity', 'cable_randomSingleIntensity', 'Value')
+	modules.connect_parameter(NETWORK_PARAMS, 'pitchFalloffIntensity', 'cable_pitchFalloffIntensityL', 'Value')	
+	modules.connect_parameter(NETWORK_PARAMS, 'pitchFalloffDecay', 'cable_pitchFalloffDecayL', 'Value')	
+	modules.connect_parameter(NETWORK_PARAMS, 'pitchRandomGlobalBang', 'cable_randomGlobalL', 'Value')	
+	modules.connect_parameter(NETWORK_PARAMS, 'pitchRandomGlobalIntensity', 'cable_randomGlobalIntensityL', 'Value')
+	modules.connect_parameter(NETWORK_PARAMS, 'pitchRandomSingleIntensity', 'cable_randomSingleIntensityL', 'Value')
+
+	if STEREO_INSTRUMENT:
+		modules.connect_parameter(NETWORK_PARAMS, 'pitchFalloffIntensity', 'cable_pitchFalloffIntensityR', 'Value')
+		modules.connect_parameter(NETWORK_PARAMS, 'pitchFalloffDecay', 'cable_pitchFalloffDecayR', 'Value')
+		modules.connect_parameter(NETWORK_PARAMS, 'pitchRandomGlobalBang', 'cable_randomGlobalR', 'Value')	
+		modules.connect_parameter(NETWORK_PARAMS, 'pitchRandomGlobalIntensity', 'cable_randomGlobalIntensityR', 'Value')
+		modules.connect_parameter(NETWORK_PARAMS, 'pitchRandomSingleIntensity', 'cable_randomSingleIntensityR', 'Value')
 
 	modules.connect_parameter(NETWORK_PARAMS, 'filterFalloffDecay', 'ahdsrFilter', 'Decay')
 	modules.connect_parameter(NETWORK_PARAMS, 'stiffness', 'tanhDry', 'Gain')

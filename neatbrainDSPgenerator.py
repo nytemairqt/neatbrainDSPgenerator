@@ -58,24 +58,25 @@ denorm_ratios = {
 	'max_ratio_R' : max(RATIOS_R),
 }
 
-for ratio in denorm_ratios:
-	modules.create_parameter(NETWORK_PARAMS, ratio, denorm_ratios[ratio], denorm_ratios[ratio], 0.01, denorm_ratios[ratio])
-
 parameters = {	
-	'stiffness' : [0.0, 1.0, 0.01, 0.0],
-	'stiffnessType' : [0.0, 1.0, 1.0, 0.0],
-	'pitchVelocity' : [0.0, 1.0, 0.01, 0.0],
 	'pitchFalloffIntensity' : [0.0, 1.0, 0.01, PITCH_FALLOFF_INTENSITY],
 	'pitchFalloffDecay' : [0, 40000, 1, PITCH_FALLOFF_DECAY],	
 	'pitchRandomGlobalBang' : [-1.0, 1.0, 0.01, 0.1],
-	'pitchRandomGlobalIntensity' : [0.0, 1.0, 0.01, 0.1],
-	'pitchRandomSingleIntensity' : [0.0, 1.0, 0.01, 0.1],
+	'pitchRandomGlobalIntensity' : [0.0, 1.0, 0.01, PITCH_RANDOMGLOBAL_INTENSITY],
+	'pitchRandomSingleIntensity' : [0.0, 1.0, 0.01, PITCH_RANDOMSINGLE_INTENSITY],
+	'pitchVelocityIntensity' : [0.0, 1.0, 0.01, 0.0],
+	'filterFalloffIntensity' : [0.0, 1.0, 0.01, 1.0],
 	'filterFalloffDecay' : [0, 40000, 1, FILTER_FALLOFF_DECAY],
-	'filterStaticFrequency' : [500, 5000, 1, FILTER_STATIC_FREQUENCY]
+	'filterStaticFrequency' : [100, 20000, 1, FILTER_STATIC_FREQUENCY],	
+	'stiffnessIntensity' : [0.0, 1.0, 0.01, 0.0],
+	'stiffnessType' : [0.0, 1.0, 1.0, 0.0],
 }
 
-for param in parameters:
+for param in reversed(parameters):
 	modules.create_parameter(NETWORK_PARAMS, param, parameters[param][0], parameters[param][1], parameters[param][2], parameters[param][3])
+
+for ratio in denorm_ratios:
+	modules.create_parameter(NETWORK_PARAMS, ratio, denorm_ratios[ratio], denorm_ratios[ratio], 0.01, denorm_ratios[ratio])	
 	
 # Connections
 
@@ -274,12 +275,12 @@ if __name__=="__main__":
 				modules.connect_module(cable_randomGlobalIntensityR, 'ModulationTargets>', f'sineR_{i}_pmaRandomGlobal', 'Multiply')
 				modules.connect_module(cable_randomSingleR, '<ModulationTargets>', f'sineR_{i}_pmaRandomSingle', 'Value')
 				modules.connect_module(cable_randomSingleIntensityR, 'ModulationTargets>', f'sineR_{i}_pmaRandomSingle', 'Multiply')
-				#modules.connect_module(sliderpack_ratiosR, '<ModulationTargets>', f'sineR_{i}_pma_normalizer', 'Value')
+				modules.connect_module(sliderpack_ratiosR, '<ModulationTargets>', f'sineR_{i}_pma_normalizer', 'Value')
 
 
 
 			# Stack Pitch Modulation
-			'''
+			
 			modules.connect_module(ahdsr_pitch, '<!-- CV -->', f'sineR_{i}_pmaCombineA', 'Value')
 			modules.connect_module(pma_randomGlobal, '<ModulationTargets>', f'sineR_{i}_pmaCombineA', 'Add')
 
@@ -291,7 +292,7 @@ if __name__=="__main__":
 			modules.connect_module(pma_normalizer, '<ModulationTargets>', f'sineR_{i}_pma_output', 'Value')		
 
 			modules.connect_module(pma_output, '<ModulationTargets>', f'sineR_{i}', 'Freq Ratio')
-			'''
+			
 
 		nodes.append(modules.close_cloner("clonerR", NUM_MODES))
 
@@ -330,6 +331,7 @@ if __name__=="__main__":
 		modules.connect_parameter(NETWORK_PARAMS, 'pitchRandomGlobalIntensity', 'cable_randomGlobalIntensityR', 'Value')
 		modules.connect_parameter(NETWORK_PARAMS, 'pitchRandomSingleIntensity', 'cable_randomSingleIntensityR', 'Value')
 
+	modules.connect_parameter(NETWORK_PARAMS, 'filterFalloffIntensity', 'ahdsrFilter', 'AttackLevel')
 	modules.connect_parameter(NETWORK_PARAMS, 'filterFalloffDecay', 'ahdsrFilter', 'Decay')
 	modules.connect_parameter(NETWORK_PARAMS, 'stiffness', 'tanhDry', 'Gain')
 	modules.connect_parameter(NETWORK_PARAMS, 'stiffness', 'tanhWet', 'Gain')

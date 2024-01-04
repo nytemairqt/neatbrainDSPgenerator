@@ -175,7 +175,7 @@ def add_filter(name, frequency):
 	lowpassFilter.append(f'</Filters>')
 	lowpassFilter.append(f'</ComplexData>')
 	lowpassFilter.append(f'<Parameters>')
-	lowpassFilter.append(f'<Parameter MinValue="20.0" MaxValue="20000.0" SkewFactor="0.2299045622348785"')
+	lowpassFilter.append(f'<Parameter MinValue="20.0" MaxValue="20000.0" SkewFactor="1.0"')
 	lowpassFilter.append(f'ID="Frequency" Value="{frequency}"/>')
 	lowpassFilter.append(f'<Parameter MinValue="0.300000011920929" MaxValue="9.899999618530273" SkewFactor="0.2647178173065186"')
 	lowpassFilter.append(f'ID="Q" Value="1.0"/>')

@@ -151,12 +151,19 @@ if __name__=="__main__":
 	nodes.append(modules.close_chain('cable_randomSingleContainer'))
 
 	# Pitch Bend
-	nodes.append(modules.open_chain('chain_pitchBend', 'container.chain', folded=0))
-	pitchBend = modules.add_midi_cc('pitchBend', 128.0)
-	cable_pitchBend = modules.add_clone_cable(f'pitchBend', NUM_MODES, mode="Fixed", use_container=True, min_value=-1.0)
-	nodes.append(pitchBend)
-	nodes.append(cable_pitchBend)
-	nodes.append(modules.close_chain('chain_pitchBend'))
+	nodes.append(modules.open_chain('chain_pitchBendL', 'container.chain', folded=0))
+	pitchBendL = modules.add_midi_cc('pitchBendL', 128.0)
+	cable_pitchBendL = modules.add_clone_cable(f'pitchBendL', NUM_MODES, mode="Fixed", use_container=True, min_value=-1.0)
+	nodes.append(pitchBendL)
+	nodes.append(cable_pitchBendL)
+	nodes.append(modules.close_chain('chain_pitchBendL'))
+
+	nodes.append(modules.open_chain('chain_pitchBendR', 'container.chain', folded=0))
+	pitchBendR = modules.add_midi_cc('pitchBendR', 128.0)
+	cable_pitchBendR = modules.add_clone_cable(f'pitchBendR', NUM_MODES, mode="Fixed", use_container=True, min_value=-1.0)
+	nodes.append(pitchBendR)
+	nodes.append(cable_pitchBendR)
+	nodes.append(modules.close_chain('chain_pitchBendR'))
 
 	# End Params
 	nodes.append(modules.close_chain('global_params'))
@@ -222,7 +229,7 @@ if __name__=="__main__":
 			modules.connect_module(cable_randomGlobalIntensityL, 'ModulationTargets>', f'sineL_{i}_pmaRandomGlobal', 'Multiply')
 			modules.connect_module(cable_randomSingleL, '<ModulationTargets>', f'sineL_{i}_pmaRandomSingle', 'Value')
 			modules.connect_module(cable_randomSingleIntensityL, '<ModulationTargets>', f'sineL_{i}_pmaRandomSingle', 'Multiply')
-			modules.connect_module(cable_pitchBend, '<ModulationTargets>', f'sineL_{i}_pmaPitchBend', 'Value')
+			modules.connect_module(cable_pitchBendL, '<ModulationTargets>', f'sineL_{i}_pmaPitchBend', 'Value')
 			modules.connect_module(sliderpack_ratiosL, '<ModulationTargets>', f'sineL_{i}_pma_normalizer', 'Value')
 
 		# Stack Pitch Modulation
@@ -305,6 +312,7 @@ if __name__=="__main__":
 				modules.connect_module(cable_randomGlobalIntensityR, 'ModulationTargets>', f'sineR_{i}_pmaRandomGlobal', 'Multiply')
 				modules.connect_module(cable_randomSingleR, '<ModulationTargets>', f'sineR_{i}_pmaRandomSingle', 'Value')
 				modules.connect_module(cable_randomSingleIntensityR, 'ModulationTargets>', f'sineR_{i}_pmaRandomSingle', 'Multiply')
+				modules.connect_module(cable_pitchBendR, '<ModulationTargets>', f'sineR_{i}_pmaPitchBend', 'Value')
 				modules.connect_module(sliderpack_ratiosR, '<ModulationTargets>', f'sineR_{i}_pma_normalizer', 'Value')
 
 
@@ -351,7 +359,8 @@ if __name__=="__main__":
 	modules.connect_module(midi_pitchFalloffIntensityR, '<ModulationTargets>', 'pma_pitchFalloffIntensityR', 'Value')
 	modules.connect_module(pma_pitchFalloffIntensityL, '<ModulationTargets>', 'cable_pitchFalloffIntensityL', 'Value')
 	modules.connect_module(pma_pitchFalloffIntensityR, '<ModulationTargets>', 'cable_pitchFalloffIntensityR', 'Value')
-	modules.connect_module(pitchBend, '<ModulationTargets>', 'cable_pitchBend', 'Value')
+	modules.connect_module(pitchBendL, '<ModulationTargets>', 'cable_pitchBendL', 'Value')
+	modules.connect_module(pitchBendR, '<ModulationTargets>', 'cable_pitchBendR', 'Value')
 
 	# Connect Global Parameters		
 	modules.connect_parameter(NETWORK_PARAMS, 'pitchFalloffIntensity', 'pma_pitchFalloffIntensityL', 'Multiply')

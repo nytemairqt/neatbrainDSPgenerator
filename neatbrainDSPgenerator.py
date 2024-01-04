@@ -103,12 +103,25 @@ if __name__=="__main__":
 
 	nodes.append(modules.open_chain('global_params', 'container.split', folded=1))
 
+	# Velocity / Falloff AHDSR
+	midi_pitchFalloffIntensityL = modules.add_midi(f'midi_pitchFalloffIntensityL', 'Velocity')	
+	midi_pitchFalloffIntensityR = modules.add_midi(f'midi_pitchFalloffIntensityR', 'Velocity')
+	pma_pitchFalloffIntensityL = modules.add_pma(f'pma_pitchFalloffIntensityL', 1.0, 1.0, 0.0, scaled=True)
+	pma_pitchFalloffIntensityR = modules.add_pma(f'pma_pitchFalloffIntensityR', 1.0, 1.0, 0.0, scaled=True)
 	cable_pitchFalloffIntensityL = modules.add_clone_cable(f'pitchFalloffIntensityL', NUM_MODES, mode="Fixed", use_container=True)		
 	cable_pitchFalloffIntensityR = modules.add_clone_cable(f'pitchFalloffIntensityR', NUM_MODES, mode="Fixed", use_container=True)		
 	cable_pitchFalloffDecayL = modules.add_clone_cable(f'pitchFalloffDecayL', NUM_MODES, mode="Fixed", use_container=True)	
 	cable_pitchFalloffDecayR = modules.add_clone_cable(f'pitchFalloffDecayR', NUM_MODES, mode="Fixed", use_container=True)	
+	nodes.append(modules.open_chain(f'chain_pitchFalloffIntensityL', 'container.chain'))
+	nodes.append(midi_pitchFalloffIntensityL)
+	nodes.append(pma_pitchFalloffIntensityL)
 	nodes.append(cable_pitchFalloffIntensityL)
+	nodes.append(modules.close_chain(f'chain_pitchFalloffIntensityL'))
+	nodes.append(modules.open_chain(f'chain_pitchFalloffIntensityR', 'container.chain'))
+	nodes.append(midi_pitchFalloffIntensityR)
+	nodes.append(pma_pitchFalloffIntensityR)	
 	nodes.append(cable_pitchFalloffIntensityR)
+	nodes.append(modules.close_chain(f'chain_pitchFalloffIntensityR'))
 	nodes.append(cable_pitchFalloffDecayL)
 	nodes.append(cable_pitchFalloffDecayR)
 
@@ -317,21 +330,29 @@ if __name__=="__main__":
 	nodes.append(modules.add_filter('ahdsrFilter', 4000))
 	modules.connect_module(ahdsr_filter, '<!-- CV -->', 'ahdsrFilter', 'Frequency')	
 
+	# Connect Global Modules
+	modules.connect_module(midi_pitchFalloffIntensityL, '<ModulationTargets>', 'pma_pitchFalloffIntensityL', 'Value')
+	modules.connect_module(midi_pitchFalloffIntensityR, '<ModulationTargets>', 'pma_pitchFalloffIntensityR', 'Value')
+	modules.connect_module(pma_pitchFalloffIntensityL, '<ModulationTargets>', 'cable_pitchFalloffIntensityL', 'Value')
+	modules.connect_module(pma_pitchFalloffIntensityR, '<ModulationTargets>', 'cable_pitchFalloffIntensityR', 'Value')
+
 	# Connect Global Parameters		
-	modules.connect_parameter(NETWORK_PARAMS, 'pitchFalloffIntensity', 'cable_pitchFalloffIntensityL', 'Value')	
+	#modules.connect_parameter(NETWORK_PARAMS, 'pitchFalloffIntensity', 'cable_pitchFalloffIntensityL', 'Value')	
+	modules.connect_parameter(NETWORK_PARAMS, 'pitchFalloffIntensity', 'pma_pitchFalloffIntensityL', 'Multiply')
 	modules.connect_parameter(NETWORK_PARAMS, 'pitchFalloffDecay', 'cable_pitchFalloffDecayL', 'Value')	
 	modules.connect_parameter(NETWORK_PARAMS, 'pitchRandomGlobalBang', 'cable_randomGlobalL', 'Value')	
 	modules.connect_parameter(NETWORK_PARAMS, 'pitchRandomGlobalIntensity', 'cable_randomGlobalIntensityL', 'Value')
 	modules.connect_parameter(NETWORK_PARAMS, 'pitchRandomSingleIntensity', 'cable_randomSingleIntensityL', 'Value')
 
 	if STEREO_INSTRUMENT:
-		modules.connect_parameter(NETWORK_PARAMS, 'pitchFalloffIntensity', 'cable_pitchFalloffIntensityR', 'Value')
+		modules.connect_parameter(NETWORK_PARAMS, 'pitchFalloffIntensity', 'pma_pitchFalloffIntensityR', 'Multiply')
+		#modules.connect_parameter(NETWORK_PARAMS, 'pitchFalloffIntensity', 'cable_pitchFalloffIntensityR', 'Value')
 		modules.connect_parameter(NETWORK_PARAMS, 'pitchFalloffDecay', 'cable_pitchFalloffDecayR', 'Value')
 		modules.connect_parameter(NETWORK_PARAMS, 'pitchRandomGlobalBang', 'cable_randomGlobalR', 'Value')	
 		modules.connect_parameter(NETWORK_PARAMS, 'pitchRandomGlobalIntensity', 'cable_randomGlobalIntensityR', 'Value')
 		modules.connect_parameter(NETWORK_PARAMS, 'pitchRandomSingleIntensity', 'cable_randomSingleIntensityR', 'Value')
 
-	modules.connect_parameter(NETWORK_PARAMS, 'filterFalloffIntensity', 'ahdsrFilter', 'AttackLevel')
+	#modules.connect_parameter(NETWORK_PARAMS, 'filterFalloffIntensity', 'ahdsrFilter', 'AttackLevel')
 	modules.connect_parameter(NETWORK_PARAMS, 'filterFalloffDecay', 'ahdsrFilter', 'Decay')
 	modules.connect_parameter(NETWORK_PARAMS, 'stiffnessIntensity', 'tanhDry', 'Gain')
 	modules.connect_parameter(NETWORK_PARAMS, 'stiffnessIntensity', 'tanhWet', 'Gain')

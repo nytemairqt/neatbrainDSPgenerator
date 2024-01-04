@@ -146,6 +146,26 @@ def add_AHDSR(name, attack, attack_level, decay, sustain, release, folded=0, ske
 	ahdsr.append(f'</Node> <!-- End AHDSR -->')
 	return ahdsr 
 
+def add_midi(name, mode):
+	midi = []
+	midi.append(f'<Node ID="{name}" FactoryPath="control.midi" Bypassed="0">')
+	midi.append(f'<Properties>')
+	midi.append(f'<Property ID="ClassId" Value=""/>')
+	midi.append(f'<Property ID="Mode" Value="{mode}"/>')
+	midi.append(f'</Properties>')
+	midi.append(f'<ModulationTargets>')
+	midi.append(f'</ModulationTargets>')
+	midi.append(f'<ComplexData>')
+	midi.append(f'<Tables/>')
+	midi.append(f'<SliderPacks/>')
+	midi.append(f'<AudioFiles/>')
+	midi.append(f'<Filters/>')
+	midi.append(f'<DisplayBuffers/>')
+	midi.append(f'</ComplexData>')
+	midi.append(f'<Parameters/>')
+	midi.append(f'</Node>	')
+	return midi
+
 def add_filter(name, frequency):
 	lowpassFilter = []
 	lowpassFilter.append(f'<Node ID="{name}" FactoryPath="filters.one_pole" Bypassed="0">')

@@ -188,6 +188,9 @@ if __name__=="__main__":
 	nodes.append(cable_randomSingleIntensityR)
 	nodes.append(modules.close_chain('cable_randomSingleContainer'))
 
+	modules.connect_parameter(NETWORK_PARAMS, 'pitchRandomSingleIntensity', 'cable_randomSingleIntensityL', 'Value')
+	modules.connect_parameter(NETWORK_PARAMS, 'pitchRandomSingleIntensity', 'cable_randomSingleIntensityR', 'Value')
+
 	# End Params
 	nodes.append(modules.close_chain('global_params'))
 

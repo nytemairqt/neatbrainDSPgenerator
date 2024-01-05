@@ -27,7 +27,7 @@ def close_chain(name, extra_params=None):
 def open_cloner(name):
 	cloner = []
 	cloner.append(f'<!-- Begin Cloner Object {name} -->')
-	cloner.append(f'<Node ID="{name}" FactoryPath="container.clone" Bypassed="0" ShowClones="1" ShowParameters="1">')
+	cloner.append(f'<Node ID="{name}" FactoryPath="container.clone" Bypassed="0" ShowClones="0" ShowParameters="1">')
 	cloner.append(f'<Properties>')
 	cloner.append(f'<Property ID="IsVertical" Value="0"/>')
 	cloner.append(f'</Properties>')
@@ -71,7 +71,7 @@ def add_clone_cable(name, num_clones, value=1.0, min_value=0.0, max_value=1.0, m
 	if (use_container):
 		cable.append(f'<Node ID="container_{name}" FactoryPath="container.no_midi" Bypassed="0">')
 		cable.append(f'<Nodes>')
-	cable.append(f'<Node ID="cable_{name}" FactoryPath="control.clone_cable" Bypassed="0">')
+	cable.append(f'<Node ID="{name}" FactoryPath="control.clone_cable" Bypassed="0">')
 	cable.append(f'<Properties>')
 	cable.append(f'<Property ID="Mode" Value="{mode}"/>')
 	cable.append(f'</Properties>')
@@ -228,7 +228,7 @@ def add_minmax(name, minimum, maximum, skew=1.0, step=0.00, polarity=0.00):
 	return minmax
 
 
-def add_pma(name, value, multiply, add, scaled=True, value_max=1.0, multiply_max=1.0, add_min=0.0, add_max=1.0):
+def add_pma(name, value, multiply, add, scaled=True, value_max=1.0, value_min=0.0, multiply_max=1.0, add_min=0.0, add_max=1.0):
 	pma = []
 	if scaled:
 		pma.append(f'<Node ID="{name}" FactoryPath="control.pma" Bypassed="0">')
@@ -237,7 +237,7 @@ def add_pma(name, value, multiply, add, scaled=True, value_max=1.0, multiply_max
 	pma.append(f'<ModulationTargets>')
 	pma.append(f'</ModulationTargets>')
 	pma.append(f'<Parameters>')
-	pma.append(f'<Parameter MinValue="0.0" MaxValue="{value_max}" ID="Value" Value="{value}" StepSize="0.01"/>')
+	pma.append(f'<Parameter MinValue="{value_min}" MaxValue="{value_max}" ID="Value" Value="{value}" StepSize="0.01"/>')
 	pma.append(f'<Parameter MinValue="0.0" MaxValue="{multiply_max}" ID="Multiply" Value="{multiply}"/>')
 	pma.append(f'<Parameter MinValue="{add_min}" MaxValue="{add_max}" ID="Add" Value="{add}"/>')
 	pma.append(f'</Parameters>')

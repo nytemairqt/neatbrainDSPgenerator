@@ -1,7 +1,7 @@
 # Globals
 
 INSTRUMENT_NAME = "NEATBrain_Achromic"
-NUM_MODES = 6 # for testing
+NUM_MODES = 2 # for testing
 STEREO_INSTRUMENT = True
 
 # Pitch
@@ -76,4 +76,4 @@ RATIOS_R = [1.0,
     27.96432995023516,
     29.07589813787308]
 
-#NUM_MODES = len(RATIOS_L)
+NUM_MODES = len(RATIOS_L)

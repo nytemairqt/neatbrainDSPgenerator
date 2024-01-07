@@ -211,7 +211,8 @@ if __name__=="__main__":
 	nodes.append(modules.close_chain('modchainLFODriftL'))
 	nodes.append(modules.close_chain('noMidiLFODriftL'))
 		
-	cable_lfoDriftL = modules.add_clone_cable(f'cable_lfoDriftL', NUM_MODES, value=1.0, min_value=-1.0, max_value=1.0, mode="Fixed", use_container=True)
+	cable_lfoDriftL = modules.add_clone_cable(f'cable_lfoDriftL', NUM_MODES, value=1.0, min_value=0.0, max_value=1.0, mode="Fixed", use_container=True)
+
 	nodes.append(cable_lfoDriftL)
 	nodes.append(modules.close_chain('chainLFODriftL'))
 
@@ -237,7 +238,7 @@ if __name__=="__main__":
 	nodes.append(modules.close_chain('modchainLFODriftR'))
 	nodes.append(modules.close_chain('noMidiLFODriftR'))
 		
-	cable_lfoDriftR = modules.add_clone_cable(f'cable_lfoDriftR', NUM_MODES, value=1.0, min_value=-1.0, max_value=1.0, mode="Fixed", use_container=True)
+	cable_lfoDriftR = modules.add_clone_cable(f'cable_lfoDriftR', NUM_MODES, value=1.0, min_value=-0.2, max_value=0.2, mode="Fixed", use_container=True)
 	nodes.append(cable_lfoDriftR)
 	nodes.append(modules.close_chain('chainLFODriftR'))
 
@@ -267,7 +268,7 @@ if __name__=="__main__":
 		# Instantiate Modules
 
 		pma_randomSingle = modules.add_pma(f'sineL_{i}_pmaRandomSingle', 1.0, 1.0, 0.0, scaled=False, value_max=1.0, add_min=-1.0, add_max=1.0)
-		pma_drift = modules.add_pma(f'sineL_{i}_pma_drift', 1.0, 1.0, 0.0, scaled=False, value_min=-1.0, add_min=-1.0)
+		pma_drift = modules.add_pma(f'sineL_{i}_pma_drift', 1.0, 1.0, 0.0, scaled=False, value_min=-1.0, add_min=-1.0, add_max=1.0)
 		pma_pitchStack = modules.add_pma(f'sineL_{i}_pmaPitchStack', 1.0, 1.0, 0.0, scaled=False, value_min=-1.0, add_min=-1.0)		
 		pma_normalizer = modules.add_pma(f'sineL_{i}_pma_normalizer', 1.0, 1.0, 0.0, scaled=False)
 		pma_output = modules.add_pma(f'sineL_{i}_pma_output', 1.0, 1.0, 0.0, scaled=False, add_min=-1.0, add_max=1.0, value_max=100.0)

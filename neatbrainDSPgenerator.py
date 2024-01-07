@@ -61,6 +61,7 @@ denorm_ratios = {
 parameters = {	
 	'pitchFalloffIntensity' : [0.0, 1.0, 0.01, PITCH_FALLOFF_INTENSITY],
 	'pitchFalloffDecay' : [0, 40000, 1, PITCH_FALLOFF_DECAY],	
+	'pitchDriftIntensity' : [0.0, 0.2, 0.01, 0.1],
 	'pitchRandomGlobalBang' : [-1.0, 1.0, 0.01, 0.1],
 	'pitchRandomGlobalIntensity' : [0.0, 1.0, 0.01, PITCH_RANDOMGLOBAL_INTENSITY],
 	'pitchRandomSingleIntensity' : [0.0, 1.0, 0.01, PITCH_RANDOMSINGLE_INTENSITY],
@@ -178,10 +179,10 @@ if __name__=="__main__":
 
 	# Random Single
 	nodes.append(modules.open_chain('cable_randomSingleContainer', 'container.chain', folded=0))
-	cable_randomSingleL = modules.add_clone_cable(f'cable_randomSingleL', NUM_MODES, value=1.0, min_value= -1.0, max_value = 1.0, mode="Random", use_container=False)
-	cable_randomSingleR = modules.add_clone_cable(f'cable_randomSingleR', NUM_MODES, value=1.0, min_value= -1.0, max_value = 1.0, mode="Random", use_container=False)
-	cable_randomSingleIntensityL = modules.add_clone_cable(f'cable_randomSingleIntensityL', NUM_MODES, value=1.0, min_value= 0.0, max_value = 1.0, mode="Fixed", use_container=True)
-	cable_randomSingleIntensityR = modules.add_clone_cable(f'cable_randomSingleIntensityR', NUM_MODES, value=1.0, min_value= 0.0, max_value = 1.0, mode="Fixed", use_container=True)
+	cable_randomSingleL = modules.add_clone_cable(f'cable_randomSingleL', NUM_MODES, value=1.0, min_value=-1.0, max_value=1.0, mode="Random", use_container=False)
+	cable_randomSingleR = modules.add_clone_cable(f'cable_randomSingleR', NUM_MODES, value=1.0, min_value=-1.0, max_value=1.0, mode="Random", use_container=False)
+	cable_randomSingleIntensityL = modules.add_clone_cable(f'cable_randomSingleIntensityL', NUM_MODES, value=1.0, min_value=0.0, max_value = 1.0, mode="Fixed", use_container=True)
+	cable_randomSingleIntensityR = modules.add_clone_cable(f'cable_randomSingleIntensityR', NUM_MODES, value=1.0, min_value=0.0, max_value = 1.0, mode="Fixed", use_container=True)
 	nodes.append(cable_randomSingleL)	
 	nodes.append(cable_randomSingleR)	
 	nodes.append(cable_randomSingleIntensityL)
@@ -190,6 +191,59 @@ if __name__=="__main__":
 
 	modules.connect_parameter(NETWORK_PARAMS, 'pitchRandomSingleIntensity', 'cable_randomSingleIntensityL', 'Value')
 	modules.connect_parameter(NETWORK_PARAMS, 'pitchRandomSingleIntensity', 'cable_randomSingleIntensityR', 'Value')
+
+	# LFO Drift Left
+	nodes.append(modules.open_chain('chainLFODriftL', 'container.chain'))
+	
+	nodes.append(modules.open_chain('noMidiLFODriftL', 'container.no_midi'))
+	nodes.append(modules.open_chain('modchainLFODriftL', 'container.modchain'))
+
+	lfoDriftL = modules.add_sine(f'lfoDriftL', 1.0, frequency=0.35, min_freq=0.3, max_freq=5.0)
+	sig2modDriftL = modules.add_sig2mod(f'sig2modDriftL')
+	peakDriftL = modules.add_peak(f'peakDriftL')
+	bipolarDriftL = modules.add_bipolar(f'bipolarDriftL')
+
+	nodes.append(lfoDriftL)
+	nodes.append(sig2modDriftL)
+	nodes.append(peakDriftL)
+	nodes.append(bipolarDriftL)
+
+	nodes.append(modules.close_chain('modchainLFODriftL'))
+	nodes.append(modules.close_chain('noMidiLFODriftL'))
+		
+	cable_lfoDriftL = modules.add_clone_cable(f'cable_lfoDriftL', NUM_MODES, value=1.0, min_value=-1.0, max_value=1.0, mode="Fixed", use_container=True)
+	nodes.append(cable_lfoDriftL)
+	nodes.append(modules.close_chain('chainLFODriftL'))
+
+	modules.connect_module(peakDriftL, '<ModulationTargets>', 'bipolarDriftL', 'Value')
+	modules.connect_module(bipolarDriftL, '<ModulationTargets>', 'cable_lfoDriftL', 'Value')
+
+	# LFO Drift Right
+	nodes.append(modules.open_chain('chainLFODriftR', 'container.chain'))
+	
+	nodes.append(modules.open_chain('noMidiLFODriftR', 'container.no_midi'))
+	nodes.append(modules.open_chain('modchainLFODriftR', 'container.modchain'))
+
+	lfoDriftR = modules.add_sine(f'lfoDriftR', 1.0, frequency=0.32, min_freq=0.3, max_freq=5.0, phase=.35)
+	sig2modDriftR = modules.add_sig2mod(f'sig2modDriftR')
+	peakDriftR = modules.add_peak(f'peakDriftR')
+	bipolarDriftR = modules.add_bipolar(f'bipolarDriftR')
+
+	nodes.append(lfoDriftR)
+	nodes.append(sig2modDriftR)
+	nodes.append(peakDriftR)
+	nodes.append(bipolarDriftR)
+
+	nodes.append(modules.close_chain('modchainLFODriftR'))
+	nodes.append(modules.close_chain('noMidiLFODriftR'))
+		
+	cable_lfoDriftR = modules.add_clone_cable(f'cable_lfoDriftR', NUM_MODES, value=1.0, min_value=-1.0, max_value=1.0, mode="Fixed", use_container=True)
+	nodes.append(cable_lfoDriftR)
+	nodes.append(modules.close_chain('chainLFODriftR'))
+
+	modules.connect_module(peakDriftR, '<ModulationTargets>', 'bipolarDriftR', 'Value')
+	modules.connect_module(bipolarDriftR, '<ModulationTargets>', 'cable_lfoDriftR', 'Value')
+
 
 	# End Params
 	nodes.append(modules.close_chain('global_params'))
@@ -213,13 +267,15 @@ if __name__=="__main__":
 		# Instantiate Modules
 
 		pma_randomSingle = modules.add_pma(f'sineL_{i}_pmaRandomSingle', 1.0, 1.0, 0.0, scaled=False, value_max=1.0, add_min=-1.0, add_max=1.0)
-		pma_pitchStack = modules.add_pma(f'sineL_{i}_pmaPitchStack', 1.0, 1.0, 0.0, scaled=True, value_min=-1.0, add_min=-1.0)
+		pma_drift = modules.add_pma(f'sineL_{i}_pma_drift', 1.0, 1.0, 0.0, scaled=False, value_min=-1.0, add_min=-1.0)
+		pma_pitchStack = modules.add_pma(f'sineL_{i}_pmaPitchStack', 1.0, 1.0, 0.0, scaled=False, value_min=-1.0, add_min=-1.0)		
 		pma_normalizer = modules.add_pma(f'sineL_{i}_pma_normalizer', 1.0, 1.0, 0.0, scaled=False)
 		pma_output = modules.add_pma(f'sineL_{i}_pma_output', 1.0, 1.0, 0.0, scaled=False, add_min=-1.0, add_max=1.0, value_max=100.0)
 		sine = modules.add_sine(f'sineL_{i}', 1.0)
 
 		nodes.append(pma_randomSingle)		
-		nodes.append(pma_pitchStack)
+		nodes.append(pma_drift)
+		nodes.append(pma_pitchStack)		
 		nodes.append(pma_normalizer)
 		nodes.append(pma_output)
 		nodes.append(sine)
@@ -236,10 +292,12 @@ if __name__=="__main__":
 			modules.connect_module(cable_pitchModL, '<ModulationTargets>', f'sineL_{i}_pmaPitchStack', 'Value')
 			modules.connect_module(cable_randomSingleL, '<ModulationTargets>', f'sineL_{i}_pmaRandomSingle', 'Value')
 			modules.connect_module(cable_randomSingleIntensityL, '<ModulationTargets>', f'sineL_{i}_pmaRandomSingle', 'Multiply')
+			modules.connect_module(cable_lfoDriftL, '<ModulationTargets>', f'sineL_{i}_pma_drift', 'Add') 
 			modules.connect_module(sliderpack_ratiosL, '<ModulationTargets>', f'sineL_{i}_pma_normalizer', 'Value')
 
 		# Connect Pitch Modulation
-		modules.connect_module(pma_randomSingle, '<ModulationTargets>', f'sineL_{i}_pmaPitchStack', 'Add')
+		modules.connect_module(pma_randomSingle, '<ModulationTargets>', f'sineL_{i}_pma_drift', 'Value')
+		modules.connect_module(pma_drift, '<ModulationTargets>', f'sineL_{i}_pmaPitchStack', 'Add')
 		modules.connect_module(pma_normalizer, '<ModulationTargets>', f'sineL_{i}_pma_output', 'Value')	
 		modules.connect_module(pma_pitchStack, '<ModulationTargets>', f'sineL_{i}_pma_output', 'Add')
 		modules.connect_module(pma_output, '<ModulationTargets>', f'sineL_{i}', 'Freq Ratio')
@@ -267,13 +325,15 @@ if __name__=="__main__":
 
 			# Instantiate Modules
 
-			pma_randomSingle = modules.add_pma(f'sineR_{i}_pmaRandomSingle', 1.0, 1.0, 0.0, scaled=False, value_max=1.0, add_min=-1.0, add_max=1.0)
-			pma_pitchStack = modules.add_pma(f'sineR_{i}_pmaPitchStack', 1.0, 1.0, 0.0, scaled=True, value_min=-1.0, add_min=-1.0)
+			pma_randomSingle = modules.add_pma(f'sineR_{i}_pmaRandomSingle', 1.0, 1.0, 0.0, scaled=False, value_min=-1.0, value_max=1.0, add_min=-1.0, add_max=1.0)
+			pma_drift = modules.add_pma(f'sineR_{i}_pma_drift', 1.0, 1.0, 0.0, scaled=False, value_min=-1.0, add_min=-1.0)
+			pma_pitchStack = modules.add_pma(f'sineR_{i}_pmaPitchStack', 1.0, 1.0, 0.0, scaled=False, value_min=-1.0, add_min=-1.0)			
 			pma_normalizer = modules.add_pma(f'sineR_{i}_pma_normalizer', 1.0, 1.0, 0.0, scaled=False)
 			pma_output = modules.add_pma(f'sineR_{i}_pma_output', 1.0, 1.0, 0.0, scaled=False, add_min=-1.0, add_max=1.0, value_max=100.0)
 			sine = modules.add_sine(f'sineR_{i}', 1.0)
 
-			nodes.append(pma_randomSingle)		
+			nodes.append(pma_randomSingle)	
+			nodes.append(pma_drift)	
 			nodes.append(pma_pitchStack)
 			nodes.append(pma_normalizer)
 			nodes.append(pma_output)
@@ -291,10 +351,12 @@ if __name__=="__main__":
 				modules.connect_module(cable_pitchModR, '<ModulationTargets>', f'sineR_{i}_pmaPitchStack', 'Value')
 				modules.connect_module(cable_randomSingleR, '<ModulationTargets>', f'sineR_{i}_pmaRandomSingle', 'Value')
 				modules.connect_module(cable_randomSingleIntensityR, '<ModulationTargets>', f'sineR_{i}_pmaRandomSingle', 'Multiply')
+				modules.connect_module(cable_lfoDriftR, '<ModulationTargets>', f'sineR_{i}_pma_drift', 'Add') 
 				modules.connect_module(sliderpack_ratiosR, '<ModulationTargets>', f'sineR_{i}_pma_normalizer', 'Value')
 
 			# Connect Pitch Modulation
-			modules.connect_module(pma_randomSingle, '<ModulationTargets>', f'sineR_{i}_pmaPitchStack', 'Add')
+			modules.connect_module(pma_randomSingle, '<ModulationTargets>', f'sineR_{i}_pma_drift', 'Value')
+			modules.connect_module(pma_drift, '<ModulationTargets>', f'sineR_{i}_pmaPitchStack', 'Add')
 			modules.connect_module(pma_normalizer, '<ModulationTargets>', f'sineR_{i}_pma_output', 'Value')	
 			modules.connect_module(pma_pitchStack, '<ModulationTargets>', f'sineR_{i}_pma_output', 'Add')
 			modules.connect_module(pma_output, '<ModulationTargets>', f'sineR_{i}', 'Freq Ratio')
@@ -322,6 +384,8 @@ if __name__=="__main__":
 	nodes.append(modules.add_filter('ahdsrFilter', 4000))
 	modules.connect_module(ahdsr_filter, '<!-- CV -->', 'ahdsrFilter', 'Frequency')	
 
+	modules.connect_parameter(NETWORK_PARAMS, 'pitchDriftIntensity', 'bipolarDriftL', 'Scale')
+	modules.connect_parameter(NETWORK_PARAMS, 'pitchDriftIntensity', 'bipolarDriftR', 'Scale')
 	modules.connect_parameter(NETWORK_PARAMS, 'filterFalloffDecay', 'ahdsrFilter', 'Decay')
 	modules.connect_parameter(NETWORK_PARAMS, 'stiffnessIntensity', 'tanhDry', 'Gain')
 	modules.connect_parameter(NETWORK_PARAMS, 'stiffnessIntensity', 'tanhWet', 'Gain')

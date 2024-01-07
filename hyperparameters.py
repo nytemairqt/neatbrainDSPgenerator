@@ -1,7 +1,7 @@
 # Globals
 
 INSTRUMENT_NAME = "NEATBrain_Achromic"
-NUM_MODES = 12 # for testing
+NUM_MODES = 2 # for testing
 STEREO_INSTRUMENT = True
 
 # Pitch

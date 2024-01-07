@@ -89,7 +89,7 @@ def add_clone_cable(name, num_clones, value=1.0, min_value=0.0, max_value=1.0, m
 		cable.append(f'</Node>')
 	return cable 
 
-def add_sine(name, freq_ratio):
+def add_sine(name, freq_ratio, frequency=220.0, min_freq=20, max_freq=20000, phase=0.0):
 	sine = []
 	sine.append(f'<!-- Oscillator {name} -->')
 	sine.append(f'<Node ID="{name}" FactoryPath="core.oscillator" Bypassed="0">')
@@ -100,10 +100,10 @@ def add_sine(name, freq_ratio):
 	sine.append(f'</ComplexData>')
 	sine.append(f'<Parameters>')
 	sine.append(f'<Parameter MinValue="0.0" MaxValue="4.0" StepSize="1.0" ID="Mode" Automated="1"/>')
-	sine.append(f'<Parameter MinValue="20.0" MaxValue="20000.0" StepSize="0.1000000014901161" SkewFactor="0.2299045622348785" ID="Frequency" Value="220.0"/>')
+	sine.append(f'<Parameter MinValue="0.3" MaxValue="20000.0" StepSize="0.1000000014901161" SkewFactor="0.2299045622348785" ID="Frequency" Value="{frequency}"/>')
 	sine.append(f'<Parameter MinValue="1.0" MaxValue="30.0" StepSize="1.0" ID="Freq Ratio" Value="{freq_ratio}"/>')
 	sine.append(f'<Parameter MinValue="0.0" MaxValue="1.0" StepSize="1.0" ID="Gate" Value="1.0"/>')
-	sine.append(f'<Parameter MinValue="0.0" MaxValue="1.0" ID="Phase" Value="0.0"/>')
+	sine.append(f'<Parameter MinValue="0.0" MaxValue="1.0" ID="Phase" Value="{phase}"/>')
 	sine.append(f'<Parameter MinValue="0.0" MaxValue="1.0" ID="Gain" Value="1.0"/>')
 	sine.append(f'</Parameters>')
 	sine.append(f'</Node>')
@@ -289,6 +289,20 @@ def add_midi_cc(name, idx):
 	midi.append(f'</Node>')
 	return midi
 
+def add_pitch_mod(name, idx=-1):
+	mod = []
+	mod.append(f'<Node ID="{name}" FactoryPath="core.pitch_mod" Bypassed="0">')
+	mod.append(f'<ComplexData>')
+	mod.append(f'<DisplayBuffers>')
+	mod.append(f'<DisplayBuffer Index="{idx}"/>')
+	mod.append(f'</DisplayBuffers>')
+	mod.append(f'</ComplexData>')
+	mod.append(f'<Parameters/>')
+	mod.append(f'<ModulationTargets>')
+	mod.append(f'</ModulationTargets>')
+	mod.append(f'</Node>')
+	return mod
+
 # this one is gross
 def add_switcher(name):
 	switcher = []
@@ -381,6 +395,43 @@ def add_switcher(name):
 	switcher.append(f'</Node>')
 	switcher.append(f'<!-- End Switcher -->')
 	return switcher
+
+def add_sig2mod(name):
+	sig2mod = []
+	sig2mod.append(f'<Node ID="{name}" FactoryPath="math.sig2mod" Bypassed="0">')
+	sig2mod.append(f'<Parameters>')
+	sig2mod.append(f'<Parameter MinValue="0.0" MaxValue="1.0" ID="Value" Value="0.0"/>')
+	sig2mod.append(f'</Parameters>')
+	sig2mod.append(f'</Node>')
+	return sig2mod
+
+def add_peak(name):
+	peak = []
+	peak.append(f'<Node ID="{name}" FactoryPath="core.peak" Bypassed="0">')
+	peak.append(f'<ComplexData>')
+	peak.append(f'<DisplayBuffers>')
+	peak.append(f'<DisplayBuffer Index="-1"/>')
+	peak.append(f'</DisplayBuffers>')
+	peak.append(f'</ComplexData>')
+	peak.append(f'<Parameters/>')
+	peak.append(f'<ModulationTargets>')
+	peak.append(f'</ModulationTargets>')
+	peak.append(f'</Node>')
+	return peak
+
+def add_bipolar(name):
+	bipolar = []
+	bipolar.append(f'<Node ID="{name}" FactoryPath="control.bipolar" Bypassed="0">')
+	bipolar.append(f'<Parameters>')
+	bipolar.append(f'<Parameter MinValue="0.0" MaxValue="1.0" ID="Value"/>')
+	bipolar.append(f'<Parameter MinValue="0.0" MaxValue="0.2" SkewFactor="1.0" ID="Scale" Value="1.0"/>')
+	bipolar.append(f'<Parameter MinValue="0.5" MaxValue="2.0" SkewFactor="0.6309297680854797" ID="Gamma" Value="1.0"/>')
+	bipolar.append(f'</Parameters>')
+	bipolar.append(f'<ModulationTargets>')
+	bipolar.append(f'</ModulationTargets>')
+	bipolar.append(f'</Node>')
+	return bipolar 
+
 
 #------------------------------------------------------------------------------------
 # CONNECTIONS

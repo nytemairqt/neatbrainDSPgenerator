@@ -168,7 +168,7 @@ def add_midi(name, mode):
 
 def add_filter(name, frequency):
 	lowpassFilter = []
-	lowpassFilter.append(f'<Node ID="{name}" FactoryPath="filters.one_pole" Bypassed="0">')
+	lowpassFilter.append(f'<Node ID="{name}" FactoryPath="filters.svf" Bypassed="0">')
 	lowpassFilter.append(f'<ComplexData>')
 	lowpassFilter.append(f'<Filters>')
 	lowpassFilter.append(f'<Filter Index="-1" EmbeddedData=""/>')
@@ -419,12 +419,12 @@ def add_peak(name):
 	peak.append(f'</Node>')
 	return peak
 
-def add_bipolar(name, skew=1.0):
+def add_bipolar(name, skew=1.0, value_min=0.0, value_max=1.0, scale_min=0.0, scale_max=1.0, scale=1.0):
 	bipolar = []
 	bipolar.append(f'<Node ID="{name}" FactoryPath="control.bipolar" Bypassed="0">')
 	bipolar.append(f'<Parameters>')
-	bipolar.append(f'<Parameter MinValue="0.0" MaxValue="1.0" SkewFactor="{skew}" ID="Value"/>')
-	bipolar.append(f'<Parameter MinValue="0.0" MaxValue="0.2" SkewFactor="{skew}" ID="Scale" Value="1.0"/>')
+	bipolar.append(f'<Parameter MinValue="{value_min}" MaxValue="{value_max}" SkewFactor="{skew}" ID="Value"/>')
+	bipolar.append(f'<Parameter MinValue="{scale_min}" MaxValue="{scale_max}" SkewFactor="{skew}" ID="Scale" Value="{scale}"/>')
 	bipolar.append(f'<Parameter MinValue="0.5" MaxValue="2.0" SkewFactor="0.6309297680854797" ID="Gamma" Value="1.0"/>')
 	bipolar.append(f'</Parameters>')
 	bipolar.append(f'<ModulationTargets>')

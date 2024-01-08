@@ -1,30 +1,12 @@
-#networkbuilder
+# Import
 
 string = '<?xml version="1.0" encoding="UTF-8"?>'
-#PATH = 'D:/Documents/HISE/neatbraintestingSCRIPTNODE/DspNetworks/Networks'
 PATH = 'D:/Documents/HISE/neatbraininstrument/DspNetworks/Networks'
 
 import modules
 from hyperparameters import *
 
 file = open(f'{PATH}/NEATBrain_Achromic.xml', 'w')
-
-# TO DO
-
-# Connect ratios to front-end
-# Scale ratios to be between 0 & 1
-# Z = (X - min(x)) / (max(x) - min(x))
-# denormalize with fancy node
-
-# Pitch Bend
-# Pitch Velocity
-# Filter Velocity
-# Amplitude Velocity
-
-# IMPORTANT: uncomment out filters, tanh etc etc
-
-# by exposing the sliderpacks to the end user, we could create presets that sound like different instruments...
-# just save the ratios as a json object or array 
 
 # Instantiate XML Doc
 
@@ -59,15 +41,15 @@ denorm_ratios = {
 }
 
 parameters = {	
-	'pitchFalloffIntensity' : [0.0, 1.0, 0.01, PITCH_FALLOFF_INTENSITY],
-	'pitchFalloffDecay' : [0, 40000, 1, PITCH_FALLOFF_DECAY],	
+	'pitchFalloffIntensity' : [0.0, 1.0, 0.01, 0.05],
+	'pitchFalloffDecay' : [0, 40000, 1, 2200],	
 	'pitchDriftIntensity' : [0.0, 0.2, 0.01, 0.1],
 	'pitchRandomGlobalBang' : [-1.0, 1.0, 0.01, 0.1],
-	'pitchRandomGlobalIntensity' : [0.0, 1.0, 0.01, PITCH_RANDOMGLOBAL_INTENSITY],
-	'pitchRandomSingleIntensity' : [0.0, 1.0, 0.01, PITCH_RANDOMSINGLE_INTENSITY],
+	'pitchRandomGlobalIntensity' : [0.0, 1.0, 0.01, 0.04],
+	'pitchRandomSingleIntensity' : [0.0, 1.0, 0.01, 0.01],
 	'filterFalloffIntensity' : [0.0, 1.0, 0.01, 1.0],
-	'filterFalloffDecay' : [0, 40000, 1, FILTER_FALLOFF_DECAY],
-	'filterStaticFrequency' : [100, 20000, 1, FILTER_STATIC_FREQUENCY],	
+	'filterFalloffDecay' : [0, 40000, 1, 5000],
+	'filterStaticFrequency' : [100, 20000, 1, 3000],	
 	'stiffnessIntensity' : [0.0, 1.0, 0.01, 0.0],
 	'stiffnessType' : [0.0, 1.0, 1.0, 0.0],
 }
@@ -81,13 +63,12 @@ for ratio in denorm_ratios:
 # Connections
 
 if __name__=="__main__":
-	# be careful using restoreState() on the scriptnode synth
 
 	# Instantiate Nodes
 
 	nodes = []
 	
-	ahdsr_filter = modules.add_AHDSR("ahdsrFilter", 5.0, 1.0, FILTER_FALLOFF_DECAY, 0.0, 50) # A AL D S R 
+	ahdsr_filter = modules.add_AHDSR("ahdsrFilter", 5.0, 1.0, 5000, 0.0, 50) # A AL D S R 
 	sliderpack_ratiosL = modules.add_clone_sliderpack("ratiosL", NUM_MODES)
 	sliderpack_ratiosR = modules.add_clone_sliderpack("ratiosR", NUM_MODES)
 
@@ -112,6 +93,7 @@ if __name__=="__main__":
 	pma_randomGlobalL = modules.add_pma(f'pmaRandomGlobalL', 1.0, 1.0, 0.0, scaled=False, value_min=-1.0, value_max=1.0) # Bang -> Value, Intensity -> Mult	
 	pma_CombineAL = modules.add_pma(f'pmaCombineAL', 1.0, 1.0, 0.0, scaled=False, add_min=-1.0) # AHDSR & RandomGlobal
 	midi_PitchBendL = modules.add_midi_cc('pitchBendL', 128.0)
+	bipolar_PitchBendL = modules.add_bipolar(f'bipolarPitchBendL', value_min=-1.0, value_max=1.0, scale_min=0.0, scale_max=1.0, scale=1.0)
 	pma_CombineBL = modules.add_pma(f'pmaCombineBL', 1.0, 1.0, 0.0, scaled=False, value_min=-1.0, add_min=-1.0) # CombineA & PitchBend
 	cable_pitchModL = modules.add_clone_cable(f'cable_pitchModL', NUM_MODES, mode="Fixed", use_container=False, min_value=-1.0)
 
@@ -121,6 +103,7 @@ if __name__=="__main__":
 	nodes.append(pma_randomGlobalL)
 	nodes.append(pma_CombineAL)
 	nodes.append(midi_PitchBendL)
+	nodes.append(bipolar_PitchBendL)
 	nodes.append(pma_CombineBL)
 	nodes.append(cable_pitchModL)
 	nodes.append(modules.close_chain('pitchModL'))
@@ -137,18 +120,20 @@ if __name__=="__main__":
 	modules.connect_module(ahdsr_PitchFalloffL, '<!-- CV -->', 'pmaCombineAL', 'Value')
 	modules.connect_module(pma_randomGlobalL, '<ModulationTargets>', 'pmaCombineAL', 'Add')
 	modules.connect_module(pma_CombineAL, '<ModulationTargets>', 'pmaCombineBL', 'Value')
-	modules.connect_module(midi_PitchBendL, '<ModulationTargets>', 'pmaCombineBL', 'Add')
+	modules.connect_module(midi_PitchBendL, '<ModulationTargets>', 'bipolarPitchBendL', 'Value')
+	modules.connect_module(bipolar_PitchBendL, '<ModulationTargets>', 'pmaCombineBL', 'Add')
 	modules.connect_module(pma_CombineBL, '<ModulationTargets>', 'cable_pitchModL', 'Value')
 
 	# Pitch Mod Stack Right
 
-	nodes.append(modules.open_chain('pitchModR', 'container.chain', folded=0))
+	nodes.append(modules.open_chain('pitchModR', 'container.chain', folded=1))
 	midi_VelocityR = modules.add_midi(f'midiVelocityR', 'Velocity')
 	pma_VelocityR = modules.add_pma(f'pmaVelocityR', 1.0, 1.0, 0.0, scaled=False)
 	ahdsr_PitchFalloffR = modules.add_AHDSR(f'ahdsrVelocityR', 5.0, 1.0, 2000, 0.0, 50)
 	pma_randomGlobalR = modules.add_pma(f'pmaRandomGlobalR', 1.0, 1.0, 0.0, scaled=False, value_min=-1.0, value_max=1.0) # Bang -> Value, Intensity -> Mult	
 	pma_CombineAR = modules.add_pma(f'pmaCombineAR', 1.0, 1.0, 0.0, scaled=False, add_min=-1.0) # AHDSR & RandomGlobal
 	midi_PitchBendR = modules.add_midi_cc('pitchBendR', 128.0)
+	bipolar_PitchBendR = modules.add_bipolar(f'bipolarPitchBendR', value_min=-1.0, value_max=1.0, scale_min=0.0, scale_max=1.0, scale=1.0)
 	pma_CombineBR = modules.add_pma(f'pmaCombineBR', 1.0, 1.0, 0.0, scaled=False, value_min=-1.0, add_min=-1.0) # CombineA & PitchBend
 	cable_pitchModR = modules.add_clone_cable(f'cable_pitchModR', NUM_MODES, mode="Fixed", use_container=False, min_value=-1.0)
 
@@ -158,6 +143,7 @@ if __name__=="__main__":
 	nodes.append(pma_randomGlobalR)
 	nodes.append(pma_CombineAR)
 	nodes.append(midi_PitchBendR)
+	nodes.append(bipolar_PitchBendR)
 	nodes.append(pma_CombineBR)
 	nodes.append(cable_pitchModR)
 	nodes.append(modules.close_chain('pitchModR'))
@@ -174,7 +160,8 @@ if __name__=="__main__":
 	modules.connect_module(ahdsr_PitchFalloffR, '<!-- CV -->', 'pmaCombineAR', 'Value')
 	modules.connect_module(pma_randomGlobalR, '<ModulationTargets>', 'pmaCombineAR', 'Add')
 	modules.connect_module(pma_CombineAR, '<ModulationTargets>', 'pmaCombineBR', 'Value')
-	modules.connect_module(midi_PitchBendR, '<ModulationTargets>', 'pmaCombineBR', 'Add')
+	modules.connect_module(midi_PitchBendR, '<ModulationTargets>', 'bipolarPitchBendR', 'Value')
+	modules.connect_module(bipolar_PitchBendR, '<ModulationTargets>', 'pmaCombineBR', 'Add')
 	modules.connect_module(pma_CombineBR, '<ModulationTargets>', 'cable_pitchModR', 'Value')
 
 	# Random Single
@@ -201,7 +188,7 @@ if __name__=="__main__":
 	lfoDriftL = modules.add_sine(f'lfoDriftL', 1.0, frequency=0.35, min_freq=0.3, max_freq=5.0)
 	sig2modDriftL = modules.add_sig2mod(f'sig2modDriftL')
 	peakDriftL = modules.add_peak(f'peakDriftL')
-	bipolarDriftL = modules.add_bipolar(f'bipolarDriftL')
+	bipolarDriftL = modules.add_bipolar(f'bipolarDriftL', scale_max=0.2, scale=0.2)
 
 	nodes.append(lfoDriftL)
 	nodes.append(sig2modDriftL)
@@ -220,7 +207,7 @@ if __name__=="__main__":
 	modules.connect_module(bipolarDriftL, '<ModulationTargets>', 'cable_lfoDriftL', 'Value')
 
 	# LFO Drift Right
-	nodes.append(modules.open_chain('chainLFODriftR', 'container.chain'))
+	nodes.append(modules.open_chain('chainLFODriftR', 'container.chain', folded=1))
 	
 	nodes.append(modules.open_chain('noMidiLFODriftR', 'container.no_midi'))
 	nodes.append(modules.open_chain('modchainLFODriftR', 'container.modchain'))
@@ -228,7 +215,7 @@ if __name__=="__main__":
 	lfoDriftR = modules.add_sine(f'lfoDriftR', 1.0, frequency=0.32, min_freq=0.3, max_freq=5.0, phase=.35)
 	sig2modDriftR = modules.add_sig2mod(f'sig2modDriftR')
 	peakDriftR = modules.add_peak(f'peakDriftR')
-	bipolarDriftR = modules.add_bipolar(f'bipolarDriftR')
+	bipolarDriftR = modules.add_bipolar(f'bipolarDriftR', scale_max=0.2, scale=0.2)
 
 	nodes.append(lfoDriftR)
 	nodes.append(sig2modDriftR)

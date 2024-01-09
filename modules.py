@@ -276,7 +276,7 @@ def add_jpanner(name, default_value):
 	jpanner.append(f'</Node>')
 	return jpanner
 
-def add_midi_cc(name, idx):
+def add_midi_cc(name, idx, default=0.5):
 	midi = []
 	midi.append(f'<Node ID="{name}" FactoryPath="control.midi_cc" Bypassed="0">')
 	midi.append(f'<ModulationTargets>')
@@ -284,7 +284,7 @@ def add_midi_cc(name, idx):
 	midi.append(f'<Parameters>')
 	midi.append(f'<Parameter MinValue="0.0" MaxValue="131.0" StepSize="1.0" ID="CCNumber" Value="{idx}"/>')
 	midi.append(f'<Parameter MinValue="0.0" MaxValue="1.0" StepSize="1.0" ID="EnableMPE" Value="0.0"/>')
-	midi.append(f'<Parameter MinValue="0.0" MaxValue="1.0" ID="DefaultValue" Value="0.0"/>')
+	midi.append(f'<Parameter MinValue="0.0" MaxValue="1.0" ID="DefaultValue" Value="{default}"/>')
 	midi.append(f'</Parameters>')	
 	midi.append(f'</Node>')
 	return midi
